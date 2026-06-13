@@ -29,9 +29,7 @@ ce12-capstone-sandbox/
 
 ## How to startup
 
-cd
-
-### Provision VPC, EKS Cluster, Helm install of services
+### Provision VPC, EKS Cluster, Helm Installation of Services
 
 ```bash
 cd terraform
@@ -44,4 +42,17 @@ terraform apply
 ```bash
 aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
 kubectl apply -k manifests
+```
+
+## Useful URL
+
+- Store: http://grp5.sctp-sandbox.com/
+- Grafana: http://http://grp5-grafana.sctp-sandbox.com/
+
+## Useful commands
+
+### Get Grafana Admin Password
+
+```bash
+kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
 ```
