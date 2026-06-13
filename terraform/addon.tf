@@ -6,6 +6,38 @@ resource "kubernetes_namespace_v1" "external_dns" {
   }
 }
 
+data "http" "gateway_api_crds" {
+  url = "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml"
+}
+
+data "kubectl_file_documents" "gateway_api_docs" {
+  content = data.http.gateway_api_crds.response_body
+}
+
+resource "kubectl_manifest" "gateway_api_crd" {
+  for_each = data.kubectl_file_documents.gateway_api_docs.manifests
+
+  yaml_body         = each.value
+  server_side_apply = true
+  wait              = true
+}
+
+data "aws_eks_addon_version" "ebs_csi_driver" {
+  addon_name         = "aws-ebs-csi-driver"
+  kubernetes_version = var.cluster_version
+  most_recent        = true
+}
+
+resource "aws_eks_addon" "ebs_csi_driver" {
+  cluster_name                = module.eks.cluster_name
+  addon_name                  = "aws-ebs-csi-driver"
+  addon_version               = data.aws_eks_addon_version.ebs_csi_driver.version
+  service_account_role_arn    = module.ebs_csi_role.arn
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+  depends_on                  = [module.eks, module.ebs_csi_role]
+}
+
 resource "helm_release" "aws_load_balancer_controller" {
   name             = "aws-load-balancer-controller"
   repository       = "https://aws.github.io/eks-charts"
@@ -16,7 +48,11 @@ resource "helm_release" "aws_load_balancer_controller" {
   timeout          = 900
   atomic           = true
   cleanup_on_fail  = true
-  depends_on       = [module.eks, kubernetes_service_account_v1.aws_load_balancer_controller]
+  depends_on = [
+    module.eks,
+    kubernetes_service_account_v1.aws_load_balancer_controller,
+    kubectl_manifest.gateway_api_crd
+  ]
 
   values = [
     yamlencode({
@@ -24,6 +60,13 @@ resource "helm_release" "aws_load_balancer_controller" {
       vpcId                       = module.vpc.vpc_id
       region                      = var.aws_region
       enableServiceMutatorWebhook = false
+      defaultTargetType           = "ip"
+
+      controllerConfig = {
+        featureGates = {
+          "ALBGatewayAPI" = true
+        }
+      }
 
       serviceAccount = {
         create = false
@@ -50,6 +93,7 @@ resource "helm_release" "external_dns" {
   values = [
     yamlencode({
       provider = "aws"
+      sources  = ["service", "ingress", "gateway-httproute"]
 
       # Unique cluster identifier to prevent conflicts if sharing a Route53 zone
       txtOwnerId = var.cluster_name
@@ -58,8 +102,7 @@ resource "helm_release" "external_dns" {
         create = false
         name   = "external-dns"
         annotations = {
-          # Binds the IRSA Role ARN dynamically from your IAM module
-          "eks.amazonaws.com/role-arn" = module.external_dns_role.iam_role_arn
+          "eks.amazonaws.com/role-arn" = module.external_dns_role.arn
         }
       }
 
@@ -110,26 +153,35 @@ resource "helm_release" "prometheus" {
         }
 
         ingress = {
-          enabled          = true
-          ingressClassName = "alb"
-
-          annotations = {
-            "alb.ingress.kubernetes.io/group.name"      = "grp5-app-alb"
-            "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
-            "alb.ingress.kubernetes.io/target-type"     = "ip"
-            "external-dns.alpha.kubernetes.io/hostname" = "grp5-grafana.sctp-sandbox.com"
-
-            "alb.ingress.kubernetes.io/healthcheck-path" = "/api/health"
-            "alb.ingress.kubernetes.io/healthcheck-port" = "traffic-port"
-          }
-
-          hosts = [
-            "grp5-grafana.sctp-sandbox.com"
-          ]
-
-          path = "/"
+          enabled = false
         }
       }
     })
   ]
+}
+
+resource "kubectl_manifest" "grafana_httproute" {
+  depends_on = [helm_release.prometheus]
+
+  yaml_body = <<-YAML
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: grafana-route
+  namespace: monitoring
+spec:
+  hostnames:
+    - grp5-grafana.sctp-sandbox.com
+  parentRefs:
+    - name: retail-store-gateway
+      namespace: ui
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: prometheus-grafana
+          port: 80
+YAML
 }
