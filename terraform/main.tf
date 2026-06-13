@@ -17,7 +17,7 @@ data "aws_availability_zones" "available" {
 }
 
 resource "kubernetes_namespace_v1" "load-gen" {
-  depends_on = [moducdle.eks]
+  depends_on = [module.eks]
 
   metadata {
     name = "load-gen"

@@ -29,6 +29,8 @@ ce12-capstone-sandbox/
 
 ## How to startup
 
+cd
+
 ### Provision VPC, EKS Cluster, Helm install of services
 
 ```bash
