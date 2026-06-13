@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: load-generator
+  namespace: load-gen
+  labels:
+    app: load-generator
+spec:
+  schedule: "* * * * *"
+
+  # Prevents overlapping executions if a previous job is still running
+  concurrencyPolicy: Forbid
+
+  # Cleans up finished jobs automatically to save cluster resource limits
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: load-generator
+        spec:
+          # Required for jobs; ensures pods close naturally when processing ends
+          restartPolicy: OnFailure
+
+          initContainers:
+            - name: setup
+              image: public.ecr.aws/aws-containers/retail-store-sample-utils:load-gen.1.2.1
+              command: ["bash"]
+              args: ["-c", "cp /artillery/* /scripts"]
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+
+          containers:
+            - name: artillery
+              image: artilleryio/artillery:2.0.22
+              args:
+                - "run"
+                - "-t"
+                - "http://ui.ui.svc.cluster.local"
+                - "--overrides"
+                - '{"config":{"phases":[{"duration":30,"arrivalRate":100}]}}'
+                - "/scripts/scenario.yml"
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+
+          volumes:
+            - name: scripts
+              emptyDir: {}
