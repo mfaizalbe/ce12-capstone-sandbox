@@ -1,0 +1,23 @@
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
+metadata:
+  name: ui-tg-config
+  namespace: ui
+spec:
+  targetReference:
+    kind: Service
+    name: ui
+  defaultConfiguration:
+    targetType: ip
+  routeConfigurations:
+    - routeIdentifier:
+        kind: HTTPRoute
+        namespace: ui
+        name: ui-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: HTTP
+          healthCheckPort: "8080"
+          healthCheckPath: /actuator/health/liveness
+          matcher:
+            httpCode: "200"
