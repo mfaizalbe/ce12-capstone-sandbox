@@ -1,0 +1,15 @@
+clusterName: retail-store-grp5
+region: ap-southeast-1
+vpcId: {{ requiredEnv "VPC_ID" | quote }}
+enableServiceMutatorWebhook: false
+defaultTargetType: ip
+
+controllerConfig:
+  featureGates:
+    ALBGatewayAPI: true
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller-sa
+  annotations:
+    eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%s:role/retail-store-grp5-aws-load-balancer-controller-irsa" (requiredEnv "AWS_ACCOUNT_ID") | quote }}

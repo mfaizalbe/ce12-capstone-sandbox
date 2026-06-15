@@ -16,8 +16,7 @@ spec:
         name: ui-route
       targetGroupProps:
         healthCheckConfig:
-          healthCheckProtocol: HTTP
-          healthCheckPort: "8080"
+          healthCheckProtocol: http
           healthCheckPath: /actuator/health/liveness
           matcher:
             httpCode: "200"

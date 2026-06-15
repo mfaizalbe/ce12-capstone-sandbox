@@ -62,6 +62,13 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 15
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness

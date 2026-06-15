@@ -58,69 +58,19 @@ module "eks" {
 
   create_security_group      = false
   create_node_security_group = false
-  security_group_additional_rules = {
-    hybrid-node = {
-      cidr_blocks = [local.remote_node_cidr]
-      description = "Allow all traffic from remote node/pod network"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "all"
-      type        = "ingress"
-    }
-
-    hybrid-pod = {
-      cidr_blocks = [local.remote_pod_cidr]
-      description = "Allow all traffic from remote node/pod network"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "all"
-      type        = "ingress"
-    }
-  }
-
-  node_security_group_additional_rules = {
-    hybrid_node_rule = {
-      cidr_blocks = [local.remote_node_cidr]
-      description = "Allow all traffic from remote node/pod network"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "all"
-      type        = "ingress"
-    }
-
-    hybrid_pod_rule = {
-      cidr_blocks = [local.remote_pod_cidr]
-      description = "Allow all traffic from remote node/pod network"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "all"
-      type        = "ingress"
-    }
-  }
-
-
-  remote_network_config = {
-    remote_node_networks = {
-      cidrs = [local.remote_node_cidr]
-    }
-    # Required if running webhooks on Hybrid nodes
-    remote_pod_networks = {
-      cidrs = [local.remote_pod_cidr]
-    }
-  }
 
   eks_managed_node_groups = {
     default = {
       instance_types           = ["t3.medium"] # ["m5.large"]
       force_update_version     = true
-      release_version          = var.ami_release_version
+      release_version          = "1.33.0-20250704"
       use_name_prefix          = false
       iam_role_name            = "${var.cluster_name}-ng-default"
       iam_role_use_name_prefix = false
 
-      min_size     = 4
+      min_size     = 5
       max_size     = 6
-      desired_size = 4
+      desired_size = 5
 
       update_config = {
         max_unavailable_percentage = 50

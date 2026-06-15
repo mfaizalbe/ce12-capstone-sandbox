@@ -14,6 +14,10 @@ Sandbox repository for the CE12 DevOps Capstone project to experiment with appli
 
 ```text
 ce12-capstone-sandbox/
+├── docs/
+├── helm/
+│   ├── values/
+│   └── helmfile.yaml.gotmpl
 ├── manifests/
 │   ├── carts/
 │   ├── catalog/
@@ -37,17 +41,50 @@ terraform init
 terraform apply
 ```
 
-### Start Application
+### Helm Chart installation
+
+```bash
+aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export VPC_ID=$(aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 --query 'cluster.resourcesVpcConfig.vpcId' --output text)
+helmfile -f helm/helmfile.yaml.gotmpl lint
+helmfile -f helm/helmfile.yaml.gotmpl sync
+helmfile -f helm/helmfile.yaml.gotmpl list
+```
+
+Validation:
+
+```bash
+kubectl get pods -n kube-system  # shows aws-load-balancer-controller healthy.
+kubectl get pods -n external-dns # shows external-dns healthy.
+kubectl get pods -n monitoring   # shows prometheus/grafana healthy.
+```
+
+### Start Application with Kustomize
 
 ```bash
 aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
 kubectl apply -k manifests
 ```
 
+Validation
+
+```bash
+kubectl -get all -A
+```
+
+## Shutdown
+
+```bash
+kubectl delete -k manifests
+helmfile -f helm/helmfile.yaml.gotmpl destroy
+terraform -chdir=terraform destroy
+```
+
 ## Useful URL
 
-- Store: http://grp5.sctp-sandbox.com/
-- Grafana: http://http://grp5-grafana.sctp-sandbox.com/
+- [Store: http://grp5.sctp-sandbox.com/](http://grp5.sctp-sandbox.com/)
+- [Grafana: http://grp5-grafana.sctp-sandbox.com/](http://grp5-grafana.sctp-sandbox.com/)
 
 ## Useful commands
 

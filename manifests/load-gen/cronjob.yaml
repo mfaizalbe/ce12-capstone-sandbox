@@ -42,7 +42,7 @@ spec:
                 - "-t"
                 - "http://ui.ui.svc.cluster.local"
                 - "--overrides"
-                - '{"config":{"phases":[{"duration":30,"arrivalRate":100}]}}'
+                - '{"config":{"phases":[{"duration":30,"arrivalRate":20}]}}'
                 - "/scripts/scenario.yml"
               volumeMounts:
                 - name: scripts

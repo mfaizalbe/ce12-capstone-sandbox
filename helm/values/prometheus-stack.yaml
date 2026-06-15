@@ -1,0 +1,12 @@
+prometheus:
+  enabled: true
+
+alertmanager:
+  enabled: true
+
+grafana:
+  enabled: true
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false

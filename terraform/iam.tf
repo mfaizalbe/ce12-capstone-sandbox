@@ -1,3 +1,4 @@
+# service accounts
 module "lb_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
   version = "~> 6.6.0"
@@ -50,24 +51,58 @@ module "ebs_csi_role" {
   }
 }
 
-resource "kubernetes_service_account_v1" "aws_load_balancer_controller" {
-  depends_on = [module.eks]
-  metadata {
-    name      = "aws-load-balancer-controller-sa"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = module.lb_role.arn
+data "aws_iam_policy_document" "fluent_bit_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values   = ["system:serviceaccount:amazon-cloudwatch:fluent-bit"]
     }
   }
 }
 
-resource "kubernetes_service_account_v1" "external_dns" {
-  depends_on = [module.eks, kubernetes_namespace_v1.external_dns]
-  metadata {
-    name      = "external-dns"
-    namespace = "external-dns"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = module.external_dns_role.arn
-    }
+data "aws_iam_policy_document" "fluent_bit_cloudwatch" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:PutLogEvents"
+    ]
+    resources = [
+      "arn:aws:logs:${var.aws_region}:*:log-group:/aws/containerinsights/${var.cluster_name}*",
+      "arn:aws:logs:${var.aws_region}:*:log-group:/aws/containerinsights/${var.cluster_name}*:log-stream:*"
+    ]
   }
+}
+
+resource "aws_iam_role" "fluent_bit_irsa" {
+  name               = "${var.cluster_name}-fluent-bit-irsa"
+  assume_role_policy = data.aws_iam_policy_document.fluent_bit_assume_role.json
+}
+
+resource "aws_iam_policy" "fluent_bit_cloudwatch" {
+  name   = "${var.cluster_name}-fluent-bit-cloudwatch"
+  policy = data.aws_iam_policy_document.fluent_bit_cloudwatch.json
+}
+
+resource "aws_iam_role_policy_attachment" "fluent_bit_cloudwatch" {
+  role       = aws_iam_role.fluent_bit_irsa.name
+  policy_arn = aws_iam_policy.fluent_bit_cloudwatch.arn
 }

@@ -4,30 +4,6 @@ provider "aws" {
   }
 }
 
-data "aws_eks_cluster" "this" {
-  name       = module.eks.cluster_name
-  depends_on = [module.eks]
-}
-
-data "aws_eks_cluster_auth" "this" {
-  name       = module.eks.cluster_name
-  depends_on = [module.eks]
-}
-
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.this.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.this.token
-}
-
-provider "helm" {
-  kubernetes = {
-    host                   = data.aws_eks_cluster.this.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
-    token                  = data.aws_eks_cluster_auth.this.token
-  }
-}
-
 terraform {
   backend "s3" {
     bucket               = "capstone-project-group5"
@@ -41,18 +17,6 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = ">= 4.67.0"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.20.0"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.11.0"
-    }
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "1.19.0"
     }
   }
 

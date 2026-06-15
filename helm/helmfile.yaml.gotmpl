@@ -1,0 +1,49 @@
+repositories:
+  - name: eks
+    url: https://aws.github.io/eks-charts
+  - name: external-dns
+    url: https://kubernetes-sigs.github.io/external-dns/
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+
+helmDefaults:
+  wait: true
+  timeout: 900
+  atomic: true
+
+releases:
+  - name: aws-load-balancer-controller
+    namespace: kube-system
+    createNamespace: false
+    chart: eks/aws-load-balancer-controller
+    version: 1.13.4
+    hooks:
+      - events: ["presync"]
+        command: kubectl
+        args: ["apply", "-k", "../manifests/crds"]
+    values:
+      - values/aws-load-balancer-controller.yaml.gotmpl
+
+  - name: external-dns
+    namespace: external-dns
+    createNamespace: true
+    chart: external-dns/external-dns
+    version: 1.21.1
+    wait: false
+    atomic: false
+    needs:
+      - kube-system/aws-load-balancer-controller
+    values:
+      - values/external-dns.yaml.gotmpl
+
+  - name: prometheus
+    namespace: monitoring
+    createNamespace: true
+    chart: prometheus-community/kube-prometheus-stack
+    version: 69.0.0
+    wait: false
+    atomic: false
+    needs:
+      - kube-system/aws-load-balancer-controller
+    values:
+      - values/prometheus-stack.yaml

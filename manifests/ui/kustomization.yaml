@@ -10,5 +10,5 @@ resources:
   - gatewayclass.yaml
   - loadbalancerconfig.yaml
   - gateway.yaml
-  - httproute-ui.yaml
-  - targetgrp-conf.yaml
+  - httproute.yaml
+  - targetgrpconf.yaml
