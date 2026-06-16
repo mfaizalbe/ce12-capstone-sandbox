@@ -1,5 +1,7 @@
 prometheus:
   enabled: true
+  prometheusSpec:
+    enableRemoteWriteReceiver: true
 
 alertmanager:
   enabled: true

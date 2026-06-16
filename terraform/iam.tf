@@ -106,3 +106,66 @@ resource "aws_iam_role_policy_attachment" "fluent_bit_cloudwatch" {
   role       = aws_iam_role.fluent_bit_irsa.name
   policy_arn = aws_iam_policy.fluent_bit_cloudwatch.arn
 }
+
+data "aws_iam_policy_document" "loki_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values   = ["system:serviceaccount:monitoring:loki"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "loki_s3" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.loki_bucket_name}"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.loki_bucket_name}/*"
+    ]
+  }
+}
+
+resource "aws_iam_role" "loki_irsa" {
+  name               = "${var.cluster_name}-loki-irsa"
+  assume_role_policy = data.aws_iam_policy_document.loki_assume_role.json
+}
+
+resource "aws_iam_policy" "loki_s3" {
+  name   = "${var.cluster_name}-loki-s3"
+  policy = data.aws_iam_policy_document.loki_s3.json
+}
+
+resource "aws_iam_role_policy_attachment" "loki_s3" {
+  role       = aws_iam_role.loki_irsa.name
+  policy_arn = aws_iam_policy.loki_s3.arn
+}

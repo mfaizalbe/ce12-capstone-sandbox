@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: fluent-bit
-  namespace: amazon-cloudwatch
+  namespace: monitoring
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::255945442255:role/retail-store-grp5-fluent-bit-irsa
 ---
@@ -35,13 +35,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: fluent-bit
-    namespace: amazon-cloudwatch
+    namespace: monitoring
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluent-bit-cluster-info
-  namespace: amazon-cloudwatch
+  namespace: monitoring
 data:
   cluster.name: retail-store-grp5
   http.server: "On"
@@ -54,7 +54,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: fluent-bit-config
-  namespace: amazon-cloudwatch
+  namespace: monitoring
   labels:
     k8s-app: fluent-bit
 data:
@@ -138,6 +138,16 @@ data:
         auto_create_group   true
         extra_user_agent    container-insights
 
+    [OUTPUT]
+        Name                loki
+        Match               application.*
+        host                loki.monitoring.svc.cluster.local
+        port                3100
+        labels              job=fluent-bit, stream=application, cluster=${CLUSTER_NAME}, node=${HOST_NAME}
+        label_keys          $kubernetes['namespace_name'],$kubernetes['pod_name'],$kubernetes['container_name']
+        line_format         json
+        auto_kubernetes_labels on
+
   dataplane-log.conf: |
     [INPUT]
         Name                systemd
@@ -183,6 +193,14 @@ data:
         log_stream_prefix   ${HOST_NAME}-
         auto_create_group   true
         extra_user_agent    container-insights
+
+    [OUTPUT]
+        Name                loki
+        Match               dataplane.*
+        host                loki.monitoring.svc.cluster.local
+        port                3100
+        labels              job=fluent-bit, stream=dataplane, cluster=${CLUSTER_NAME}, node=${HOST_NAME}
+        line_format         json
 
   host-log.conf: |
     [INPUT]
@@ -243,6 +261,14 @@ data:
         auto_create_group   true
         extra_user_agent    container-insights
 
+    [OUTPUT]
+        Name                loki
+        Match               host.*
+        host                loki.monitoring.svc.cluster.local
+        port                3100
+        labels              job=fluent-bit, stream=host, cluster=${CLUSTER_NAME}, node=${HOST_NAME}
+        line_format         json
+
   parsers.conf: |
     [PARSER]
         Name                syslog
@@ -269,7 +295,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: fluent-bit
-  namespace: amazon-cloudwatch
+  namespace: monitoring
   labels:
     k8s-app: fluent-bit
     version: v1

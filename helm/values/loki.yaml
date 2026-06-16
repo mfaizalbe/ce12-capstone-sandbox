@@ -1,0 +1,85 @@
+# Loki Helm values for retail-store-grp5
+# Chart: grafana/loki (single-binary mode)
+# Stores chunks and indexes in S3
+
+loki:
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 1
+
+  storage:
+    type: s3
+    bucketNames:
+      chunks: retail-store-grp5-loki-chunks
+      ruler: retail-store-grp5-loki-chunks
+      admin: retail-store-grp5-loki-chunks
+    s3:
+      region: ap-southeast-1
+      insecure: false
+
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  limits_config:
+    retention_period: 744h # 31 days
+
+deploymentMode: SingleBinary
+
+serviceAccount:
+  create: true
+  name: loki
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::255945442255:role/retail-store-grp5-loki-irsa
+
+singleBinary:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  extraArgs:
+    - -config.expand-env=true
+  persistence:
+    enabled: true
+    storageClass: gp2
+    size: 10Gi
+
+# Disable components not used in single-binary mode
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
+
+# Disable bundled Grafana agent / self-monitoring to keep it lean
+monitoring:
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
+  lokiCanary:
+    enabled: false
+  serviceMonitor:
+    enabled: false
+
+# Enable Grafana datasource provisioning if Grafana is in same cluster
+gateway:
+  enabled: false
+
+test:
+  enabled: false

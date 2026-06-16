@@ -70,7 +70,10 @@ Actions:
 Commands:
 
 ```bash
-kubectl apply -k manifests
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export AWS_REGION=ap-southeast-1
+export EKS_CLUSTER_NAME=retail-store-grp5
+kubectl kustomize manifests | envsubst '${AWS_ACCOUNT_ID} ${EKS_CLUSTER_NAME} ${AWS_REGION}' | kubectl apply -f -
 ```
 
 Validation:
@@ -107,7 +110,10 @@ Suggested command flow:
 terraform -chdir=terraform apply
 aws eks --region <region> update-kubeconfig --name <cluster_name>
 helmfile -f helm/helmfile.yaml.gotmpl sync
-kubectl apply -k manifests
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export AWS_REGION=<region>
+export EKS_CLUSTER_NAME=<cluster_name>
+kubectl kustomize manifests | envsubst '${AWS_ACCOUNT_ID} ${EKS_CLUSTER_NAME} ${AWS_REGION}' | kubectl apply -f -
 
 # teardown
 kubectl delete -k manifests
@@ -211,7 +217,7 @@ This transition stage is complete when:
 2. Helm charts are deployed with one command:
    - `helmfile -f helm/helmfile.yaml.gotmpl sync`
 3. Apps deploy with one command:
-   - `kubectl apply -k manifests`
+   - `kubectl kustomize manifests | envsubst '${AWS_ACCOUNT_ID} ${EKS_CLUSTER_NAME} ${AWS_REGION}' | kubectl apply -f -`
 4. Teardown is repeatable without subnet/IGW dependency violations.
 
 ## Quick execution checklist

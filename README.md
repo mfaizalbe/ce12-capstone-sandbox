@@ -15,13 +15,18 @@ Sandbox repository for the CE12 DevOps Capstone project to experiment with appli
 ```text
 ce12-capstone-sandbox/
 ├── docs/
+├── grafana/
 ├── helm/
 │   ├── values/
 │   └── helmfile.yaml.gotmpl
 ├── manifests/
+│   ├── adot/
 │   ├── carts/
 │   ├── catalog/
 │   ├── checkout/
+│   ├── crds/
+│   ├── fluentbit/
+│   ├── grafana/
 │   ├── load-gen/
 │   ├── orders/
 │   ├── ui/
@@ -64,7 +69,10 @@ kubectl get pods -n monitoring   # shows prometheus/grafana healthy.
 
 ```bash
 aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
-kubectl apply -k manifests
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export AWS_REGION=ap-southeast-1
+export EKS_CLUSTER_NAME=retail-store-grp5
+kubectl kustomize manifests | envsubst '${AWS_ACCOUNT_ID} ${EKS_CLUSTER_NAME} ${AWS_REGION}' | kubectl apply -f -
 ```
 
 Validation

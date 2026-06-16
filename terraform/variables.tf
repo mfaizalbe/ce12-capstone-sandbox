@@ -32,3 +32,9 @@ variable "cluster_admins" {
     "szekongchan"
   ]
 }
+
+variable "loki_bucket_name" {
+  description = "S3 bucket used by Loki for object storage"
+  type        = string
+  default     = "retail-store-grp5-loki-chunks"
+}

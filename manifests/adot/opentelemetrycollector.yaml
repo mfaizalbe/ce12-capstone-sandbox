@@ -1,0 +1,89 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: adot
+  namespace: monitoring
+spec:
+  image: public.ecr.aws/aws-observability/aws-otel-collector:v0.40.0
+  mode: deployment
+  observability:
+    metrics:
+      enableMetrics: false
+  serviceAccount: adot-collector
+  config:
+    receivers:
+      prometheus:
+        config:
+          global:
+            scrape_interval: 60s
+            scrape_timeout: 15s
+            external_labels:
+              cluster: ${EKS_CLUSTER_NAME}
+              account_id: ${AWS_ACCOUNT_ID}
+              region: ${AWS_REGION}
+          scrape_configs:
+            - job_name: "kubernetes-pods"
+              honor_labels: true
+
+              kubernetes_sd_configs:
+                - role: pod
+
+              relabel_configs:
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                  action: keep
+                  regex: true
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_scrape_slow]
+                  action: drop
+                  regex: true
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_scheme]
+                  action: replace
+                  regex: (https?)
+                  target_label: __scheme__
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                  action: replace
+                  target_label: __metrics_path__
+                  regex: (.+)
+                - action: labelmap
+                  regex: __meta_kubernetes_pod_annotation_prometheus_io_param_(.+)
+                  replacement: __param_$$1
+                - action: labelmap
+                  regex: __meta_kubernetes_pod_label_(.+)
+                - source_labels: [__meta_kubernetes_namespace]
+                  action: replace
+                  target_label: namespace
+                - source_labels: [__meta_kubernetes_pod_name]
+                  action: replace
+                  target_label: pod
+                - source_labels: [__meta_kubernetes_pod_phase]
+                  regex: Pending|Succeeded|Failed|Completed
+                  action: drop
+    exporters:
+      prometheusremotewrite:
+        endpoint: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090/api/v1/write
+      logging:
+        loglevel: info
+    extensions:
+      health_check: {}
+      pprof:
+        endpoint: :1888
+      zpages:
+        endpoint: :55679
+    service:
+      extensions: [pprof, zpages, health_check]
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: 0.0.0.0
+                    port: 8889
+      pipelines:
+        metrics:
+          receivers: [prometheus]
+          processors: []
+          exporters: [logging, prometheusremotewrite]
