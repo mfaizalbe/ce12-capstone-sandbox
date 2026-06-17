@@ -13,7 +13,9 @@ repositories:
 helmDefaults:
   wait: true
   timeout: 900
-  atomic: true
+  atomic: false
+  syncArgs:
+    - --skip-crds
 
 releases:
   - name: aws-load-balancer-controller
@@ -47,18 +49,16 @@ releases:
     version: 69.0.0
     wait: false
     atomic: false
+    hooks:
+      - events: ["presync"]
+        command: sh
+        args:
+          - -c
+          - helm show crds prometheus-community/kube-prometheus-stack --version 69.0.0 | kubectl apply --server-side -f -
     needs:
       - kube-system/aws-load-balancer-controller
     values:
       - values/prometheus-stack.yaml
-
-  - name: opentelemetry-operator
-    namespace: monitoring
-    createNamespace: true
-    chart: open-telemetry/opentelemetry-operator
-    version: 0.115.0
-    values:
-      - values/opentelemetry-operator.yaml
 
   - name: loki
     namespace: monitoring
@@ -67,7 +67,16 @@ releases:
     version: 6.29.0
     wait: false
     atomic: false
-    needs:
-      - kube-system/aws-load-balancer-controller
     values:
       - values/loki.yaml
+
+  - name: opentelemetry-operator
+    namespace: monitoring
+    createNamespace: true
+    chart: open-telemetry/opentelemetry-operator
+    version: 0.115.0
+    wait: false
+    atomic: false
+    values:
+      - values/opentelemetry-operator.yaml
+

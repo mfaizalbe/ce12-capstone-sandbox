@@ -29,8 +29,8 @@ module "vpc" {
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   })
   private_subnet_tags = merge(local.tags, {
-    "karpenter.sh/discovery"          = var.cluster_name
-    "kubernetes.io/role/internal-elb" = "1"
+    "karpenter.sh/discovery"                    = var.cluster_name
+    "kubernetes.io/role/internal-elb"           = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   })
 
