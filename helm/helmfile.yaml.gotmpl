@@ -54,6 +54,20 @@ releases:
         command: sh
         args:
           - -c
+          - |
+            set -eu
+            : "${GRAFANA_EBS_VOLUME_ID:?Set GRAFANA_EBS_VOLUME_ID}"
+            : "${GRAFANA_EBS_AZ:?Set GRAFANA_EBS_AZ}"
+            : "${PROMETHEUS_EBS_VOLUME_ID:?Set PROMETHEUS_EBS_VOLUME_ID}"
+            : "${PROMETHEUS_EBS_AZ:?Set PROMETHEUS_EBS_AZ}"
+            : "${LOKI_EBS_VOLUME_ID:?Set LOKI_EBS_VOLUME_ID}"
+            : "${LOKI_EBS_AZ:?Set LOKI_EBS_AZ}"
+            kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+            envsubst '${GRAFANA_EBS_VOLUME_ID} ${GRAFANA_EBS_AZ} ${PROMETHEUS_EBS_VOLUME_ID} ${PROMETHEUS_EBS_AZ} ${LOKI_EBS_VOLUME_ID} ${LOKI_EBS_AZ}' < ./retained-storage.yaml | kubectl apply -f -
+      - events: ["presync"]
+        command: sh
+        args:
+          - -c
           - helm show crds prometheus-community/kube-prometheus-stack --version 69.0.0 | kubectl apply --server-side -f -
     needs:
       - kube-system/aws-load-balancer-controller

@@ -107,6 +107,69 @@ resource "aws_iam_role_policy_attachment" "fluent_bit_cloudwatch" {
   policy_arn = aws_iam_policy.fluent_bit_cloudwatch.arn
 }
 
+data "aws_iam_policy_document" "grafana_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values   = ["system:serviceaccount:monitoring:prometheus-grafana"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "grafana_cloudwatch_read" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:DescribeAlarmHistory",
+      "cloudwatch:GetMetricData",
+      "cloudwatch:GetMetricStatistics",
+      "cloudwatch:ListMetrics",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:FilterLogEvents",
+      "logs:GetLogGroupFields",
+      "logs:GetLogRecord",
+      "logs:GetQueryResults",
+      "logs:StartQuery",
+      "logs:StopQuery",
+      "ec2:DescribeRegions",
+      "tag:GetResources"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role" "grafana_irsa" {
+  name               = "${var.cluster_name}-grafana-irsa"
+  assume_role_policy = data.aws_iam_policy_document.grafana_assume_role.json
+}
+
+resource "aws_iam_policy" "grafana_cloudwatch_read" {
+  name   = "${var.cluster_name}-grafana-cloudwatch-read"
+  policy = data.aws_iam_policy_document.grafana_cloudwatch_read.json
+}
+
+resource "aws_iam_role_policy_attachment" "grafana_cloudwatch_read" {
+  role       = aws_iam_role.grafana_irsa.name
+  policy_arn = aws_iam_policy.grafana_cloudwatch_read.arn
+}
+
 data "aws_iam_policy_document" "loki_assume_role" {
   statement {
     effect  = "Allow"

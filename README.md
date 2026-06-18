@@ -17,6 +17,8 @@ ce12-capstone-sandbox/
 ├── docs/
 ├── grafana/
 ├── helm/
+│   ├── crds/
+│   ├── retained-storage.yaml
 │   ├── values/
 │   └── helmfile.yaml.gotmpl
 ├── manifests/
@@ -24,7 +26,6 @@ ce12-capstone-sandbox/
 │   ├── carts/
 │   ├── catalog/
 │   ├── checkout/
-│   ├── crds/
 │   ├── fluentbit/
 │   ├── grafana/
 │   ├── load-gen/
@@ -36,14 +37,27 @@ ce12-capstone-sandbox/
 └── README.md
 ```
 
+## setup
+
+retained volumes (20Gi gp3) for Grafana/Prometheus/Loki.
+Use one AZ that has worker nodes, and keep these volume IDs for future re-installs/rebuilds.
+
+```bash
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-grafana-retained}]'
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-prometheus-retained}]'
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-loki-retained}]'
+```
+
+create s3 for loki
+create s3 for backend
+
 ## How to startup
 
 ### Provision VPC, EKS Cluster, Helm Installation of Services
 
 ```bash
-cd terraform
-terraform init
-terraform apply
+terraform -chdir=terraform init
+terraform -chdir=terraform apply
 ```
 
 ### Helm Chart installation
@@ -53,18 +67,32 @@ aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 # export AWS_ACCOUNT_ID=255945442255  # use this if the above didn't work
 export VPC_ID=$(aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 --query 'cluster.resourcesVpcConfig.vpcId' --output text)
-kubectl apply -k helm/crds # optional
+export GRAFANA_EBS_VOLUME_ID=vol-06ceccb8594f34210
+export GRAFANA_EBS_AZ=ap-southeast-1c
+export PROMETHEUS_EBS_VOLUME_ID=vol-0fd603b3e2cf7ca08
+export PROMETHEUS_EBS_AZ=ap-southeast-1c
+export LOKI_EBS_VOLUME_ID=vol-03735bc2949c6340d
+export LOKI_EBS_AZ=ap-southeast-1c
+
 helmfile -f helm/helmfile.yaml.gotmpl lint #optional
 helmfile -f helm/helmfile.yaml.gotmpl sync
-helmfile -f helm/helmfile.yaml.gotmpl list
 ```
 
 Validation:
 
 ```bash
+helmfile -f helm/helmfile.yaml.gotmpl list
 kubectl get pods -n kube-system  # shows aws-load-balancer-controller healthy.
 kubectl get pods -n external-dns # shows external-dns healthy.
 kubectl get pods -n monitoring   # shows prometheus/grafana healthy.
+
+kubectl get pv retained-grafana-pv retained-prometheus-tsdb-pv retained-loki-data-pv
+kubectl get pvc -n monitoring
+kubectl get pods -n monitoring
+
+kubectl get pod -n monitoring -l app.kubernetes.io/name=grafana -o jsonpath='{.items[0].spec.volumes}'
+kubectl get pod -n monitoring -l app.kubernetes.io/name=prometheus -o jsonpath='{.items[0].spec.volumes}'
+kubectl get pod -n monitoring -l app.kubernetes.io/name=loki -o jsonpath='{.items[0].spec.volumes}'
 ```
 
 ### Start Application with Kustomize
@@ -80,7 +108,7 @@ kubectl kustomize manifests | envsubst '${AWS_ACCOUNT_ID} ${EKS_CLUSTER_NAME} ${
 Validation
 
 ```bash
-kubectl -get all -A
+kubectl get all -A
 ```
 
 ## Shutdown

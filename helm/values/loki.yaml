@@ -51,8 +51,11 @@ singleBinary:
     - -config.expand-env=true
   persistence:
     enabled: true
-    storageClass: gp2
-    size: 10Gi
+    storageClass: "-"
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: retained-loki-data
+    size: 20Gi
 
 # Disable components not used in single-binary mode
 backend:

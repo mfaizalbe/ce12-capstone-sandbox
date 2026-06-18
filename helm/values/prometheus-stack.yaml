@@ -6,11 +6,14 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: gp2
+          storageClassName: ""
           accessModes: ["ReadWriteOnce"]
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: retained-prometheus-tsdb
           resources:
             requests:
-              storage: 50Gi
+              storage: 20Gi
 
 alertmanager:
   enabled: true
@@ -26,26 +29,23 @@ alertmanager:
 
 grafana:
   enabled: true
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::255945442255:role/retail-store-grp5-grafana-irsa
+  podAnnotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::255945442255:role/retail-store-grp5-grafana-irsa
+    eks.amazonaws.com/audience: sts.amazonaws.com
+    eks.amazonaws.com/sts-regional-endpoints: "true"
+  env:
+    AWS_REGION: ap-southeast-1
   service:
     type: ClusterIP
   ingress:
     enabled: false
   persistence:
     enabled: true
-    storageClassName: gp2
-    accessModes:
-      - ReadWriteOnce
-    size: 10Gi
     type: pvc
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-        - name: Prometheus
-          type: prometheus
-          url: http://prometheus-operated:9090
-          access: proxy
-          isDefault: true
+    existingClaim: prometheus-grafana-retained
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
@@ -58,4 +58,4 @@ grafana:
           updateIntervalSeconds: 10
           allowUiUpdates: true
           options:
-            path: /var/lib/grafana/dashboards/default
+            path: /tmp/dashboards

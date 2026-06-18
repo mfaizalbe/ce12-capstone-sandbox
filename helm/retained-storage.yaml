@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: retained-grafana-pv
+  labels:
+    app.kubernetes.io/name: retained-grafana
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: ebs.csi.aws.com
+    fsType: ext4
+    volumeHandle: ${GRAFANA_EBS_VOLUME_ID}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+                - ${GRAFANA_EBS_AZ}
+            - key: topology.kubernetes.io/region
+              operator: In
+              values:
+                - ap-southeast-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-grafana-retained
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: ""
+  volumeName: retained-grafana-pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: retained-prometheus-tsdb-pv
+  labels:
+    app.kubernetes.io/name: retained-prometheus-tsdb
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: ebs.csi.aws.com
+    fsType: ext4
+    volumeHandle: ${PROMETHEUS_EBS_VOLUME_ID}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+                - ${PROMETHEUS_EBS_AZ}
+            - key: topology.kubernetes.io/region
+              operator: In
+              values:
+                - ap-southeast-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: retained-loki-data-pv
+  labels:
+    app.kubernetes.io/name: retained-loki-data
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: ebs.csi.aws.com
+    fsType: ext4
+    volumeHandle: ${LOKI_EBS_VOLUME_ID}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+                - ${LOKI_EBS_AZ}
+            - key: topology.kubernetes.io/region
+              operator: In
+              values:
+                - ap-southeast-1
