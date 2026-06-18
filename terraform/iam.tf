@@ -70,7 +70,7 @@ data "aws_iam_policy_document" "fluent_bit_assume_role" {
     condition {
       test     = "StringEquals"
       variable = "${module.eks.oidc_provider}:sub"
-      values   = ["system:serviceaccount:amazon-cloudwatch:fluent-bit"]
+      values   = ["system:serviceaccount:monitoring:fluent-bit"]
     }
   }
 }

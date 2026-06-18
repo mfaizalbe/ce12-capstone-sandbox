@@ -26,7 +26,7 @@ releases:
     hooks:
       - events: ["presync"]
         command: kubectl
-        args: ["apply", "-k", "../manifests/crds"]
+        args: ["apply", "-k", "crds"]
     values:
       - values/aws-load-balancer-controller.yaml.gotmpl
 
@@ -62,7 +62,7 @@ releases:
 
   - name: loki
     namespace: monitoring
-    createNamespace: false
+    createNamespace: true
     chart: grafana/loki
     version: 6.29.0
     wait: false

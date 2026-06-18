@@ -51,8 +51,10 @@ terraform apply
 ```bash
 aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+# export AWS_ACCOUNT_ID=255945442255  # use this if the above didn't work
 export VPC_ID=$(aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 --query 'cluster.resourcesVpcConfig.vpcId' --output text)
-helmfile -f helm/helmfile.yaml.gotmpl lint
+kubectl apply -k helm/crds # optional
+helmfile -f helm/helmfile.yaml.gotmpl lint #optional
 helmfile -f helm/helmfile.yaml.gotmpl sync
 helmfile -f helm/helmfile.yaml.gotmpl list
 ```
