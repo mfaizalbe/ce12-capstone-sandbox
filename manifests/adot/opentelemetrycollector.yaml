@@ -6,6 +6,13 @@ metadata:
 spec:
   image: public.ecr.aws/aws-observability/aws-otel-collector:v0.40.0
   mode: deployment
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
   observability:
     metrics:
       enableMetrics: false

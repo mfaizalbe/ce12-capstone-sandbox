@@ -24,6 +24,13 @@ spec:
         spec:
           # Required for jobs; ensures pods close naturally when processing ends
           restartPolicy: OnFailure
+          nodeSelector:
+            workload: observability
+          tolerations:
+            - key: workload
+              operator: Equal
+              value: observability
+              effect: NoSchedule
 
           initContainers:
             - name: setup

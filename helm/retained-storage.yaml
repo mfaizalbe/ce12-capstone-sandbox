@@ -104,3 +104,79 @@ spec:
               operator: In
               values:
                 - ap-southeast-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: retained-alertmanager-data-pv
+  labels:
+    app.kubernetes.io/name: retained-alertmanager-data
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: ebs.csi.aws.com
+    fsType: ext4
+    volumeHandle: ${ALERTMANAGER_EBS_VOLUME_ID}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+                - ${ALERTMANAGER_EBS_AZ}
+            - key: topology.kubernetes.io/region
+              operator: In
+              values:
+                - ap-southeast-1
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: retained-kubecost-local-store-pv
+  labels:
+    app.kubernetes.io/name: retained-kubecost-local-store
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  csi:
+    driver: ebs.csi.aws.com
+    fsType: ext4
+    volumeHandle: ${KUBECOST_EBS_VOLUME_ID}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+                - ${KUBECOST_EBS_AZ}
+            - key: topology.kubernetes.io/region
+              operator: In
+              values:
+                - ap-southeast-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kubecost-local-store-retained
+  namespace: kubecost
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: ""
+  volumeName: retained-kubecost-local-store-pv

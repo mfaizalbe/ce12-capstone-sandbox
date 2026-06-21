@@ -1,3 +1,13 @@
+nodeSelector:
+  kubernetes.io/os: linux
+  workload: observability
+
+tolerations:
+  - key: workload
+    operator: Equal
+    value: observability
+    effect: NoSchedule
+
 admissionWebhooks:
   certManager:
     enabled: false

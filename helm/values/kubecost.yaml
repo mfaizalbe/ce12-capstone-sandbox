@@ -1,0 +1,77 @@
+global:
+  clusterId: retail-store-grp5
+
+kubecostProductConfigs:
+  prometheus:
+    url: http://prometheus-kube-prometheus-prometheus.monitoring:9090
+
+localStore:
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  persistentVolume:
+    enabled: true
+    size: 20Gi
+    storageClass: ""
+    existingClaim: kubecost-local-store-retained
+
+frontend:
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+
+finopsagent:
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+
+forecasting:
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+
+aggregator:
+  useEmptyDir: true
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+
+cloudCost:
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
+  persistentConfigsStorage:
+    enabled: false
+
+clusterController:
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule

@@ -1,6 +1,13 @@
 prometheus:
   enabled: true
   prometheusSpec:
+    nodeSelector:
+      workload: observability
+    tolerations:
+      - key: workload
+        operator: Equal
+        value: observability
+        effect: NoSchedule
     enableRemoteWriteReceiver: true
     retention: 30d
     storageSpec:
@@ -18,17 +25,34 @@ prometheus:
 alertmanager:
   enabled: true
   alertmanagerSpec:
+    nodeSelector:
+      workload: observability
+    tolerations:
+      - key: workload
+        operator: Equal
+        value: observability
+        effect: NoSchedule
     storage:
       volumeClaimTemplate:
         spec:
-          storageClassName: gp2
+          storageClassName: ""
           accessModes: ["ReadWriteOnce"]
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: retained-alertmanager-data
           resources:
             requests:
               storage: 10Gi
 
 grafana:
   enabled: true
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
   serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: arn:aws:iam::255945442255:role/retail-store-grp5-grafana-irsa

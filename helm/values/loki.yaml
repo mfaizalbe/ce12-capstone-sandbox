@@ -41,6 +41,13 @@ serviceAccount:
 
 singleBinary:
   replicas: 1
+  nodeSelector:
+    workload: observability
+  tolerations:
+    - key: workload
+      operator: Equal
+      value: observability
+      effect: NoSchedule
   resources:
     requests:
       cpu: 100m

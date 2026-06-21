@@ -9,6 +9,8 @@ repositories:
     url: https://prometheus-community.github.io/helm-charts
   - name: grafana
     url: https://grafana.github.io/helm-charts
+  - name: kubecost
+    url: https://kubecost.github.io/kubecost
 
 helmDefaults:
   wait: true
@@ -62,8 +64,13 @@ releases:
             : "${PROMETHEUS_EBS_AZ:?Set PROMETHEUS_EBS_AZ}"
             : "${LOKI_EBS_VOLUME_ID:?Set LOKI_EBS_VOLUME_ID}"
             : "${LOKI_EBS_AZ:?Set LOKI_EBS_AZ}"
+            : "${ALERTMANAGER_EBS_VOLUME_ID:?Set ALERTMANAGER_EBS_VOLUME_ID}"
+            : "${ALERTMANAGER_EBS_AZ:?Set ALERTMANAGER_EBS_AZ}"
+            : "${KUBECOST_EBS_VOLUME_ID:?Set KUBECOST_EBS_VOLUME_ID}"
+            : "${KUBECOST_EBS_AZ:?Set KUBECOST_EBS_AZ}"
             kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
-            envsubst '${GRAFANA_EBS_VOLUME_ID} ${GRAFANA_EBS_AZ} ${PROMETHEUS_EBS_VOLUME_ID} ${PROMETHEUS_EBS_AZ} ${LOKI_EBS_VOLUME_ID} ${LOKI_EBS_AZ}' < ./retained-storage.yaml | kubectl apply -f -
+            kubectl create namespace kubecost --dry-run=client -o yaml | kubectl apply -f -
+            envsubst '${GRAFANA_EBS_VOLUME_ID} ${GRAFANA_EBS_AZ} ${PROMETHEUS_EBS_VOLUME_ID} ${PROMETHEUS_EBS_AZ} ${LOKI_EBS_VOLUME_ID} ${LOKI_EBS_AZ} ${ALERTMANAGER_EBS_VOLUME_ID} ${ALERTMANAGER_EBS_AZ} ${KUBECOST_EBS_VOLUME_ID} ${KUBECOST_EBS_AZ}' < ./retained-storage.yaml | kubectl apply -f -
       - events: ["presync"]
         command: sh
         args:
@@ -93,4 +100,16 @@ releases:
     atomic: false
     values:
       - values/opentelemetry-operator.yaml
+
+  - name: kubecost
+    namespace: kubecost
+    createNamespace: true
+    chart: kubecost/kubecost
+    version: 3.2.1
+    wait: false
+    atomic: false
+    needs:
+      - monitoring/prometheus
+    values:
+      - values/kubecost.yaml
 

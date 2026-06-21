@@ -10,3 +10,4 @@ resources:
   - adot
   - grafana
   - load-gen
+  - kubecost

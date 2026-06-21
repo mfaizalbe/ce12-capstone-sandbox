@@ -60,28 +60,64 @@ module "eks" {
   create_node_security_group = false
 
   eks_managed_node_groups = {
-    default = {
+    application = {
+      name                     = "${var.cluster_name}-ng-application"
       instance_types           = ["t3.medium"] # ["m5.large"]
       force_update_version     = true
       release_version          = "1.33.0-20250704"
       use_name_prefix          = false
-      iam_role_name            = "${var.cluster_name}-ng-default"
+      iam_role_name            = "${var.cluster_name}-ng-application"
       iam_role_use_name_prefix = false
 
-      min_size     = 5
-      max_size     = 6
-      desired_size = 5
+      min_size     = 3
+      max_size     = 4
+      desired_size = 3
 
       update_config = {
         max_unavailable_percentage = 50
       }
 
       labels = {
-        workshop-default = "yes"
+        workload = "application"
       }
 
       tags = {
-        Name = "${var.cluster_name}-ng-default"
+        Name = "${var.cluster_name}-ng-application"
+      }
+    }
+
+    observability = {
+      name                     = "${var.cluster_name}-ng-observability"
+      instance_types           = ["t3.medium"]
+      force_update_version     = true
+      release_version          = "1.33.0-20250704"
+      use_name_prefix          = false
+      iam_role_name            = "${var.cluster_name}-ng-observability"
+      iam_role_use_name_prefix = false
+      subnet_ids               = [module.vpc.private_subnets[index(local.azs, "ap-southeast-1c")]]
+
+      min_size     = 2
+      max_size     = 3  
+      desired_size = 2
+
+      update_config = {
+        max_unavailable_percentage = 50
+      }
+
+      labels = {
+        workload = "observability"
+      }
+
+      taints = {
+        observability = {
+          key    = "workload"
+          value  = "observability"
+          effect = "NO_SCHEDULE"
+        }
+      }
+
+      tags = {
+        Name = "${var.cluster_name}-ng-observability"
       }
     }
   }
