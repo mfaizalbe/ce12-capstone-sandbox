@@ -1,0 +1,41 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: node-failure-simulation
+  namespace: monitoring
+  labels:
+    # Required so the kube-prometheus-stack Prometheus (helm release "prometheus")
+    # picks up this rule - it only selects PrometheusRules labelled release=<helm release name>.
+    release: prometheus
+spec:
+  groups:
+    - name: node-failure-simulation
+      rules:
+        - alert: NodeNotReady
+          expr: kube_node_status_condition{condition="Ready", status="true"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node {{ $labels.node }} is NotReady"
+            description: >-
+              Node {{ $labels.node }} has not reported Ready=true for more than 1 minute.
+              This is exactly what shows up roughly 60 seconds after running the EKS
+              Workshop "node failure (no FIS)" script, which stops the node's EC2
+              instance with `aws ec2 stop-instances`. Because the cluster uses an EKS
+              managed node group, the instance should restart on its own and the node
+              should return to Ready within a couple of minutes.
+
+        - alert: RetailStorePodsPending
+          expr: sum(kube_pod_status_phase{phase="Pending", namespace=~"catalog|carts|checkout|orders|ui"}) by (namespace) > 0
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pods stuck Pending in namespace {{ $labels.namespace }}"
+            description: >-
+              One or more retail-store pods in the {{ $labels.namespace }} namespace
+              have been stuck in the Pending phase for more than 1 minute. This is the
+              expected side effect of a node failure: Kubernetes evicts the pods that
+              were on the failed node and has to reschedule them onto a healthy node
+              before they go back to Running.

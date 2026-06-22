@@ -11,3 +11,4 @@ resources:
   - grafana
   - load-gen
   - kubecost
+  - alerts
