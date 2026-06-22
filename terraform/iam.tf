@@ -232,3 +232,50 @@ resource "aws_iam_role_policy_attachment" "loki_s3" {
   role       = aws_iam_role.loki_irsa.name
   policy_arn = aws_iam_policy.loki_s3.arn
 }
+
+data "aws_iam_policy_document" "fis_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["fis.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "fis_node_termination" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "eks:DescribeNodegroup",
+      "eks:ListNodegroups"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:DescribeInstances",
+      "ec2:TerminateInstances"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role" "fis_role" {
+  name               = "${var.cluster_name}-fis-role"
+  assume_role_policy = data.aws_iam_policy_document.fis_assume_role.json
+}
+
+resource "aws_iam_policy" "fis_node_termination" {
+  name   = "${var.cluster_name}-fis-node-termination"
+  policy = data.aws_iam_policy_document.fis_node_termination.json
+}
+
+resource "aws_iam_role_policy_attachment" "fis_node_termination" {
+  role       = aws_iam_role.fis_role.name
+  policy_arn = aws_iam_policy.fis_node_termination.arn
+}

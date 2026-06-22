@@ -16,31 +16,40 @@ Sandbox repository for the CE12 DevOps Capstone project to experiment with appli
 ce12-capstone-sandbox/
 ├── docs/
 ├── grafana/
+│   ├── connections
+│   └── dashboards
 ├── helm/
 │   ├── crds/
-│   ├── retained-storage.yaml
 │   ├── values/
-│   └── helmfile.yaml.gotmpl
+│   ├── helmfile.yaml.gotmpl
+│   └── retained-storage.yaml
 ├── manifests/
 │   ├── adot/
+│   ├── alerts/
 │   ├── carts/
 │   ├── catalog/
 │   ├── checkout/
 │   ├── fluentbit/
 │   ├── grafana/
+│   ├── kubecost/
 │   ├── load-gen/
 │   ├── orders/
 │   ├── ui/
 │   └── kustomization.yaml
 ├── terraform/
+│   ├── eks.tf
+│   ├── iam.tf
+│   ├── main.tf
+│   ├── providers.tf
+│   ├── variables.tf
+│   └── vpc.tf
 ├── .gitignore
 └── README.md
 ```
 
-## setup
+## Setup
 
-retained volumes (20Gi gp3) for Grafana/Prometheus/Loki.
-Use one AZ that has worker nodes, and keep these volume IDs for future re-installs/rebuilds.
+Create retained volumes
 
 ```bash
 aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-prometheus-retained}]'
@@ -53,7 +62,7 @@ aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1
 create s3 for loki
 create s3 for backend
 
-## How to startup
+## Startup
 
 ### Provision VPC, EKS Cluster, Helm Installation of Services
 
@@ -138,4 +147,19 @@ terraform -chdir=terraform destroy
 
 ```bash
 kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+```
+
+## DEMO
+
+```bash
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
+```
+
+```bash
+export NODE_EXP_ID=$(aws fis create-experiment-template --cli-input-json '{"description":"NodeDeletion","targets":{"retail-store-grp5-ng-application":{"resourceType":"aws:eks:nodegroup","resourceTags":{"eksctl.cluster.k8s.io/v1alpha1/cluster-name":"retail-store-grp5"},"selectionMode":"COUNT(1)"}},"actions":{"nodedeletion":{"actionId":"aws:eks:terminate-nodegroup-instances","parameters":{"instanceTerminationPercentage":"80"},"targets":{"Nodegroups":"retail-store-grp5-ng-application"}}},"stopConditions":[{"source":"none"}],"roleArn":"'$FIS_ROLE_ARN'","tags":{"ExperimentSuffix": "DEMO"}}' --output json | jq -r '.experimentTemplate.id')
+```
+
+```bash
+aws fis start-experiment --experiment-template-id $NODE_EXP_ID --output json
 ```
