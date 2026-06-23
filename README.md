@@ -10,6 +10,41 @@ Sandbox repository for the CE12 DevOps Capstone project to experiment with appli
 - Indy
 - ƒαιzαℓ.
 
+## What this project does
+
+This repo deploys a sample retail-store application (five microservices: `carts`, `catalog`, `checkout`,
+`orders`, `ui`) onto Amazon EKS, along with a full observability stack (Prometheus, Grafana, Loki,
+OpenTelemetry, Kubecost) and supporting AWS infra (VPC, IAM roles, load balancer, DNS).
+
+Deployment happens in three layers, always in this order:
+
+1. **Terraform** (`terraform/`) — creates the VPC, EKS cluster, node groups, and IAM roles.
+2. **Helmfile** (`helm/`) — installs cluster controllers and platform services (load balancer controller,
+   external-dns, Prometheus stack, Loki, OpenTelemetry operator, Kubecost).
+3. **Kustomize** (`manifests/`) — deploys the application microservices and alerting rules.
+
+For details on what each Helm release/CRD is responsible for, see
+[`docs/installation.md`](docs/installation.md). For the metrics each service exposes and example Grafana
+queries, see [`docs/app_metrics.md`](docs/app_metrics.md).
+
+## Prerequisites
+
+Install and configure these tools before starting:
+
+| Tool | Purpose | Used version |
+| --- | --- | --- |
+| [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) | AWS access, run `aws configure` first | any recent v2 |
+| [Terraform](https://developer.hashicorp.com/terraform/install) | Provision VPC/EKS/IAM | v1.15+ |
+| [kubectl](https://kubernetes.io/docs/tasks/tools/) | Talk to the cluster | v1.36+ |
+| [Helmfile](https://github.com/helmfile/helmfile#installation) | Install Helm charts declaratively | v1.5+ |
+| [Helm](https://helm.sh/docs/intro/install/) | Used internally by Helmfile | any recent v3 |
+| `envsubst` (part of `gettext`) | Substitute env vars into templated YAML | any |
+| `jq` | Parse JSON output in the DEMO section | any |
+
+You also need AWS credentials with permission to create the resources above, and to be listed in
+`cluster_admins` in [`terraform/variables.tf`](terraform/variables.tf) if you want `kubectl` admin access
+to the cluster.
+
 ## Project Structure
 
 ```text
@@ -49,7 +84,33 @@ ce12-capstone-sandbox/
 
 ## Setup
 
-Create retained volumes
+These steps only need to be run once per environment, before the first `terraform apply`.
+
+### 1. Create the S3 buckets
+
+Terraform's state and Loki's log chunks both live in S3 and must exist *before* you run Terraform.
+
+```bash
+# Bucket for Terraform remote state (matches terraform/providers.tf backend config)
+aws s3api create-bucket \
+  --bucket capstone-project-group5 \
+  --region ap-southeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-southeast-1
+
+# Bucket for Loki chunk/index storage (matches terraform/variables.tf loki_bucket_name
+# and helm/values/loki.yaml bucketNames)
+aws s3api create-bucket \
+  --bucket retail-store-grp5-loki-chunks \
+  --region ap-southeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-southeast-1
+```
+
+### 2. Create the retained EBS volumes
+
+Grafana, Prometheus, Loki, Alertmanager, and Kubecost each get a "retained" EBS volume so their data
+survives a `helmfile destroy`/`sync` cycle (see [`helm/retained-storage.yaml`](helm/retained-storage.yaml)).
+Create one volume per service, all in the same AZ used by the `observability` node group
+(`ap-southeast-1c`, see [`terraform/eks.tf`](terraform/eks.tf)):
 
 ```bash
 aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-prometheus-retained}]'
@@ -59,8 +120,9 @@ aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1
 aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-kubecost-retained}]'
 ```
 
-create s3 for loki
-create s3 for backend
+These volumes are created once and then reused on every future `helmfile sync` — you don't need to
+recreate them unless they're deleted. Their IDs are looked up by tag in the "Helm Chart installation"
+step below, so you don't need to copy/paste volume IDs by hand.
 
 ## Startup
 
@@ -73,21 +135,39 @@ terraform -chdir=terraform apply
 
 ### Helm Chart installation
 
+First point `kubectl`/`helm` at the new cluster and export the account/VPC IDs the chart values need:
+
 ```bash
 aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-# export AWS_ACCOUNT_ID=255945442255  # use this if the above didn't work
 export VPC_ID=$(aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 --query 'cluster.resourcesVpcConfig.vpcId' --output text)
-export PROMETHEUS_EBS_VOLUME_ID=vol-0fd603b3e2cf7ca08
+```
+
+Next, look up the EBS volumes created in [Setup](#setup) by their `Name` tag, so you never have to
+hardcode a volume ID:
+
+```bash
+volume_id_for() { # usage: volume_id_for <Name-tag-value>
+  aws ec2 describe-volumes --region ap-southeast-1 \
+    --filters "Name=tag:Name,Values=$1" \
+    --query 'Volumes[0].VolumeId' --output text
+}
+
+export PROMETHEUS_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-prometheus-retained)
 export PROMETHEUS_EBS_AZ=ap-southeast-1c
-export LOKI_EBS_VOLUME_ID=vol-03735bc2949c6340d
+export LOKI_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-loki-retained)
 export LOKI_EBS_AZ=ap-southeast-1c
-export GRAFANA_EBS_VOLUME_ID=vol-051c46eca0f1598f7
+export GRAFANA_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-grafana-retained)
 export GRAFANA_EBS_AZ=ap-southeast-1c
-export ALERTMANAGER_EBS_VOLUME_ID=vol-0604f19be368a27a1
+export ALERTMANAGER_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-alertmanager-retained)
 export ALERTMANAGER_EBS_AZ=ap-southeast-1c
-export KUBECOST_EBS_VOLUME_ID=vol-0a8125c27398ef004
+export KUBECOST_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-kubecost-retained)
 export KUBECOST_EBS_AZ=ap-southeast-1c
+```
+
+Then sync the Helm releases:
+
+```bash
 helmfile -f helm/helmfile.yaml.gotmpl lint #optional
 helmfile -f helm/helmfile.yaml.gotmpl sync
 ```
@@ -129,19 +209,31 @@ kubectl get all -A
 
 ## Shutdown
 
+Tear everything down in the reverse order it was created (application first, then platform, then infra):
+
 ```bash
 kubectl delete -k manifests
 helmfile -f helm/helmfile.yaml.gotmpl destroy
 terraform -chdir=terraform destroy
 ```
 
+This does **not** delete the S3 buckets or retained EBS volumes from [Setup](#setup) — they're designed
+to survive a teardown so dashboards/data/state persist across rebuilds. Delete them manually only if you
+want to fully decommission the environment.
+
 ## Useful URL
 
 - [Store: http://grp5.sctp-sandbox.com/](http://grp5.sctp-sandbox.com/)
 - [Grafana: http://grp5-grafana.sctp-sandbox.com/](http://grp5-grafana.sctp-sandbox.com/)
-- [Kubecost: http://grp5-kubecost.sctp-sandbox.com/](http://grp5-grafana.sctp-sandbox.com/)
+- [Kubecost: http://grp5-kubecost.sctp-sandbox.com/](http://grp5-kubecost.sctp-sandbox.com/)
 
 ## Useful commands
+
+If you're running these in a fresh terminal/session, point kubectl at the cluster first:
+
+```bash
+aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
+```
 
 ### Get Grafana Admin Password
 
@@ -149,16 +241,26 @@ terraform -chdir=terraform destroy
 kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
 ```
 
-## DEMO
+## DEMO: node failure simulation
+
+This uses [AWS Fault Injection Service (FIS)](https://docs.aws.amazon.com/fis/) to terminate 80% of the
+instances in the `application` node group on purpose, so you can watch the cluster self-heal and see the
+`NodeNotReady`/`RetailStorePodsPending` Prometheus alerts fire
+(see [`manifests/alerts/prometheusrule.yaml`](manifests/alerts/prometheusrule.yaml)). The IAM role FIS
+assumes is created by Terraform (`fis_role` in [`terraform/iam.tf`](terraform/iam.tf)).
 
 ```bash
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
 ```
 
+Create the experiment template (this only defines the experiment, it does not run anything yet):
+
 ```bash
 export NODE_EXP_ID=$(aws fis create-experiment-template --cli-input-json '{"description":"NodeDeletion","targets":{"retail-store-grp5-ng-application":{"resourceType":"aws:eks:nodegroup","resourceTags":{"eksctl.cluster.k8s.io/v1alpha1/cluster-name":"retail-store-grp5"},"selectionMode":"COUNT(1)"}},"actions":{"nodedeletion":{"actionId":"aws:eks:terminate-nodegroup-instances","parameters":{"instanceTerminationPercentage":"80"},"targets":{"Nodegroups":"retail-store-grp5-ng-application"}}},"stopConditions":[{"source":"none"}],"roleArn":"'$FIS_ROLE_ARN'","tags":{"ExperimentSuffix": "DEMO"}}' --output json | jq -r '.experimentTemplate.id')
 ```
+
+Run it (this actually terminates instances — only do this on a cluster you're OK disrupting):
 
 ```bash
 aws fis start-experiment --experiment-template-id $NODE_EXP_ID --output json
