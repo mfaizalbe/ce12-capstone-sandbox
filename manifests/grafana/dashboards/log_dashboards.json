@@ -1,0 +1,302 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "panels": [],
+      "title": "Application Logs (Fluent Bit \u2192 Loki)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "$logsDatasource" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{job=\"fluent-bit\",stream=\"application\",namespace_name=~\"$namespace\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Application Logs (carts / catalog / checkout / orders / ui)",
+      "type": "logs"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "$logsDatasource" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 11 },
+      "id": 2,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (namespace_name) (count_over_time({job=\"fluent-bit\",stream=\"application\",namespace_name=~\"$namespace\"}[$__interval]))",
+          "legendFormat": "{{namespace_name}}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Application Log Volume by Service",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+      "id": 200,
+      "panels": [],
+      "title": "K8S / Node Logs (Fluent Bit \u2192 Loki: dataplane + host streams)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "$logsDatasource" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+      "id": 3,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{job=\"fluent-bit\",stream=~\"dataplane|host\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "K8S Logs (kubelet / containerd / docker / aws-node / kube-proxy / node syslog)",
+      "type": "logs"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "$logsDatasource" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 30 },
+      "id": 4,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (stream) (count_over_time({job=\"fluent-bit\",stream=~\"dataplane|host\"}[$__interval]))",
+          "legendFormat": "{{stream}}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "K8S / Node Log Volume by Stream",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 38 },
+      "id": 300,
+      "panels": [],
+      "title": "Fluent Bit Pipeline Throughput (all streams it ships)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "$logsDatasource" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "mappings": [], "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 39 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (stream) (count_over_time({job=\"fluent-bit\"}[$__interval]))",
+          "legendFormat": "{{stream}}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Log Volume Shipped by Fluent Bit (application / dataplane / host)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
+      "id": 400,
+      "panels": [],
+      "title": "CloudWatch Logs (Fluent Bit \u2192 CloudWatch Container Insights)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "cloudwatch", "uid": "$cloudwatchDatasource" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 48 },
+      "id": 6,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "queryMode": "Logs",
+          "region": "$awsRegion",
+          "logGroupNames": ["/aws/containerinsights/$clusterName/$logGroupSuffix"],
+          "expression": "fields @timestamp, @message | sort @timestamp desc | limit 200",
+          "statsGroups": [],
+          "refId": "A"
+        }
+      ],
+      "title": "CloudWatch Log Group: /aws/containerinsights/$clusterName/$logGroupSuffix",
+      "type": "logs"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["retail-store", "observability", "logs", "loki", "cloudwatch", "fluent-bit"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "Loki", "value": "Loki" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Loki Datasource",
+        "multi": false,
+        "name": "logsDatasource",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": { "selected": true, "text": "CloudWatch", "value": "CloudWatch" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "CloudWatch Datasource",
+        "multi": false,
+        "name": "cloudwatchDatasource",
+        "options": [],
+        "query": "cloudwatch",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "allValue": "carts|catalog|checkout|orders|ui",
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Namespace",
+        "multi": false,
+        "name": "namespace",
+        "options": [
+          { "selected": false, "text": "carts", "value": "carts" },
+          { "selected": false, "text": "catalog", "value": "catalog" },
+          { "selected": false, "text": "checkout", "value": "checkout" },
+          { "selected": false, "text": "orders", "value": "orders" },
+          { "selected": false, "text": "ui", "value": "ui" }
+        ],
+        "query": "carts,catalog,checkout,orders,ui",
+        "refresh": 1,
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": { "selected": true, "text": "retail-store-grp5", "value": "retail-store-grp5" },
+        "hide": 0,
+        "label": "Cluster Name",
+        "name": "clusterName",
+        "options": [{ "selected": true, "text": "retail-store-grp5", "value": "retail-store-grp5" }],
+        "query": "retail-store-grp5",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": true, "text": "ap-southeast-1", "value": "ap-southeast-1" },
+        "hide": 0,
+        "label": "AWS Region",
+        "name": "awsRegion",
+        "options": [{ "selected": true, "text": "ap-southeast-1", "value": "ap-southeast-1" }],
+        "query": "ap-southeast-1",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": true, "text": "application", "value": "application" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "CloudWatch Log Group",
+        "multi": false,
+        "name": "logGroupSuffix",
+        "options": [
+          { "selected": true, "text": "application", "value": "application" },
+          { "selected": false, "text": "dataplane", "value": "dataplane" },
+          { "selected": false, "text": "host", "value": "host" }
+        ],
+        "query": "application,dataplane,host",
+        "refresh": 0,
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Log Dashboards",
+  "uid": "retail-store-log-dashboards",
+  "version": 1,
+  "weekStart": ""
+}

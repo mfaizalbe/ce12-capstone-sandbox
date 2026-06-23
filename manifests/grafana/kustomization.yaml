@@ -3,3 +3,20 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - httproute.yaml
+
+# Grafana's built-in dashboard sidecar watches for ConfigMaps labeled
+# grafana_dashboard: "1" in this namespace and copies them into /tmp/dashboards
+# (see helm/values/prometheus-stack.yaml dashboardProviders). Any *.json file
+# added here is auto-imported into Grafana on the next kustomize apply - no
+# manual "Import dashboard" step needed.
+configMapGenerator:
+  - name: grafana-dashboards
+    files:
+      - dashboards/demo.json
+      - dashboards/retail_store_app.json
+      - dashboards/retail_store_logs.json
+      - dashboards/log_dashboards.json
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
