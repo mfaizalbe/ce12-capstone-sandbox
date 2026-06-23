@@ -153,13 +153,20 @@ kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-pa
 
 ```bash
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export AWS_REGION="ap-southeast-1"
 export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
+export CLUSTER_NAME="retail-store-grp5"
+export NODEGROUP_NAME="${CLUSTER_NAME}-ng-application"
+export NODEGROUP_ARN=$(aws eks describe-nodegroup --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --nodegroup-name "$NODEGROUP_NAME" --query 'nodegroup.nodegroupArn' --output text)
+```
+
+run once to setup experiment
+
+```bash
+export NODE_EXP_ID=$(aws fis create-experiment-template --region "$AWS_REGION" --cli-input-json '{"description":"NodeDeletion","targets":{"target-nodegroup":{"resourceType":"aws:eks:nodegroup","resourceArns":["'$NODEGROUP_ARN'"],"selectionMode":"ALL"}},"actions":{"nodedeletion":{"actionId":"aws:eks:terminate-nodegroup-instances","parameters":{"instanceTerminationPercentage":"40"},"targets":{"Nodegroups":"target-nodegroup"}}},"stopConditions":[{"source":"none"}],"roleArn":"'$FIS_ROLE_ARN'","tags":{"ExperimentSuffix":"DEMO"}}' --output json | jq -r '.experimentTemplate.id')
 ```
 
 ```bash
-export NODE_EXP_ID=$(aws fis create-experiment-template --cli-input-json '{"description":"NodeDeletion","targets":{"retail-store-grp5-ng-application":{"resourceType":"aws:eks:nodegroup","resourceTags":{"eksctl.cluster.k8s.io/v1alpha1/cluster-name":"retail-store-grp5"},"selectionMode":"COUNT(1)"}},"actions":{"nodedeletion":{"actionId":"aws:eks:terminate-nodegroup-instances","parameters":{"instanceTerminationPercentage":"80"},"targets":{"Nodegroups":"retail-store-grp5-ng-application"}}},"stopConditions":[{"source":"none"}],"roleArn":"'$FIS_ROLE_ARN'","tags":{"ExperimentSuffix": "DEMO"}}' --output json | jq -r '.experimentTemplate.id')
-```
-
-```bash
-aws fis start-experiment --experiment-template-id $NODE_EXP_ID --output json
+export NODE_EXP_ID=EXTEKNnXLxNWUDCmE # when repeating the experiment only
+aws fis start-experiment --region "$AWS_REGION" --experiment-template-id "$NODE_EXP_ID" --output json
 ```

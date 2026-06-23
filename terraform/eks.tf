@@ -69,9 +69,9 @@ module "eks" {
       iam_role_name            = "${var.cluster_name}-ng-application"
       iam_role_use_name_prefix = false
 
-      min_size     = 4
+      min_size     = 3
       max_size     = 5
-      desired_size = 4
+      desired_size = 3
 
       update_config = {
         max_unavailable_percentage = 50
