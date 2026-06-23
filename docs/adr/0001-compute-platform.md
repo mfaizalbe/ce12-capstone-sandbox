@@ -3,11 +3,11 @@
 
 # ADR 0001: Use Amazon EKS as the Compute Platform
 
-## Status
+## (i) Status
 
 Accepted
 
-## Context
+## (ii) Context (Constraints that shaped the decision (team size, traffic, tooling))
 
 The Retail Store SRE capstone project requires a cloud-native platform capable of hosting containerised services while supporting observability and operational best practices. The project team consists of five members working within a one-month timeframe.
 
@@ -20,7 +20,7 @@ Key constraints and requirements include:
 * Limited development time requiring the use of managed cloud services.
 * Expected traffic is moderate, with emphasis on reliability and operational visibility rather than large-scale production workloads.
 
-## Options Considered
+## (iii) Options Considered (At least two, each with pros and cons)
 
 ### Option 1: Amazon EC2 with Docker Containers
 
@@ -56,7 +56,7 @@ Key constraints and requirements include:
 * Higher infrastructure costs.
 * Additional configuration required for cluster management.
 
-## Decision
+## (iv) Decision (What was chosen and why)
 
 The team chose Amazon EKS as the compute platform and Helm as the deployment management tool.
 
@@ -64,7 +64,7 @@ This decision was made because the project focuses on Site Reliability Engineeri
 
 Although EKS introduces additional complexity, it offers valuable experience with technologies commonly used in production environments and better supports the project's learning objectives.
 
-## Consequences
+## (v) Consequences (What this makes easier, and what it rules out)
 
 ### Makes Easier
 
@@ -83,17 +83,3 @@ Although EKS introduces additional complexity, it offers valuable experience wit
 * Lowest-cost deployment option for small workloads.
 * Direct management of applications outside the Kubernetes ecosystem.
 
-
-# Notes
-
-Title: The decision in one line
-
-Status: Accepted
-
-Context: Constraints that shaped the decision (team size, traffic, tooling)
-
-Options considered: At least two, each with pros and cons
-
-Decision: What you chose and Why
-
-Consequences: what this makes easier, and what it rules out
