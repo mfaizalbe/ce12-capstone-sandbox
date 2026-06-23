@@ -143,27 +143,30 @@ export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output tex
 export VPC_ID=$(aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 --query 'cluster.resourcesVpcConfig.vpcId' --output text)
 ```
 
-Next, look up the EBS volumes created in [Setup](#setup) by their `Name` tag, so you never have to
-hardcode a volume ID:
+Next, set the volume IDs for these EBS volumes. **Use the fixed volume IDs below rather than looking
+them up by `Name` tag.** The `Name` tag is not unique in EC2 — if a volume ever gets recreated (e.g.
+re-running the `create-volume` commands in [Setup](#setup)), the new volume keeps the same `Name` tag as
+the original, so a tag-based lookup (`describe-volumes --filters Name=tag:Name,...`) can silently match
+the wrong (duplicate) volume and pick up empty data instead of the original retained data. Pinning the
+known volume ID avoids that ambiguity entirely:
 
 ```bash
-volume_id_for() { # usage: volume_id_for <Name-tag-value>
-  aws ec2 describe-volumes --region ap-southeast-1 \
-    --filters "Name=tag:Name,Values=$1" \
-    --query 'Volumes[0].VolumeId' --output text
-}
-
-export PROMETHEUS_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-prometheus-retained)
+export PROMETHEUS_EBS_VOLUME_ID=vol-0fd603b3e2cf7ca08
 export PROMETHEUS_EBS_AZ=ap-southeast-1c
-export LOKI_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-loki-retained)
+export LOKI_EBS_VOLUME_ID=vol-03735bc2949c6340d
 export LOKI_EBS_AZ=ap-southeast-1c
-export GRAFANA_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-grafana-retained)
+export GRAFANA_EBS_VOLUME_ID=vol-051c46eca0f1598f7
 export GRAFANA_EBS_AZ=ap-southeast-1c
-export ALERTMANAGER_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-alertmanager-retained)
+export ALERTMANAGER_EBS_VOLUME_ID=vol-0604f19be368a27a1
 export ALERTMANAGER_EBS_AZ=ap-southeast-1c
-export KUBECOST_EBS_VOLUME_ID=$(volume_id_for retail-store-grp5-kubecost-retained)
+export KUBECOST_EBS_VOLUME_ID=vol-0a8125c27398ef004
 export KUBECOST_EBS_AZ=ap-southeast-1c
 ```
+
+If you ever provision a brand-new environment (no pre-existing volumes), create fresh volumes as shown
+in [Setup](#setup) and look up their IDs once with `aws ec2 describe-volumes --filters
+"Name=tag:Name,Values=<name>"`, then replace the fixed IDs above with the new ones — don't re-run that
+lookup on every sync, since a duplicate `Name` tag will reintroduce the same ambiguity.
 
 Then sync the Helm releases:
 
