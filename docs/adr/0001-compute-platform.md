@@ -1,7 +1,7 @@
 # Architecture Decision Record (ADR)
 
 
-# ADR 0001: Use Amazon EKS as the Compute Platform
+# ADR 0001: Compute Platform (Amazon EKS)
 
 ## (i) Status
 
@@ -9,16 +9,14 @@ Accepted
 
 ## (ii) Context (Constraints that shaped the decision (team size, traffic, tooling))
 
-The Retail Store SRE capstone project requires a cloud-native platform capable of hosting containerised services while supporting observability and operational best practices. The project team consists of five members working within a one-month timeframe.
+The Retail Store SRE capstone project is deployed on AWS and uses Kubernetes-based infrastructure to support multiple containerised microservices. The project team consists of five members working within a one-month timeframe.
 
 Key constraints and requirements include:
-
-* Multiple containerised application components.
-* Need to demonstrate Site Reliability Engineering (SRE) practices.
-* Integration with monitoring and observability tools such as Grafana.
-* Ability to manage deployments consistently across environments.
-* Limited development time requiring the use of managed cloud services.
-* Expected traffic is moderate, with emphasis on reliability and operational visibility rather than large-scale production workloads.
+- Running multiple containerised services
+- Demonstrating Site Reliability Engineering (SRE) practices
+- Supporting observability and monitoring tools such as Grafana
+- Using a managed platform to reduce operational overhead
+- Aligning with modern cloud-native architecture practices
 
 ## (iii) Options Considered (At least two, each with pros and cons)
 
@@ -58,11 +56,9 @@ Key constraints and requirements include:
 
 ## (iv) Decision (What was chosen and why)
 
-The team chose Amazon EKS as the compute platform and Helm as the deployment management tool.
+The team chose Amazon EKS as the compute platform.
 
-This decision was made because the project focuses on Site Reliability Engineering practices and requires a platform that demonstrates modern cloud-native operations. EKS provides managed Kubernetes capabilities while reducing the burden of maintaining the Kubernetes control plane. Helm enables repeatable and consistent application deployments, and the platform integrates effectively with Grafana-based monitoring and observability solutions.
-
-Although EKS introduces additional complexity, it offers valuable experience with technologies commonly used in production environments and better supports the project's learning objectives.
+EKS provides a managed Kubernetes environment that supports containerised workloads while reducing the operational burden of managing a Kubernetes control plane. The platform aligns with the project's SRE objectives by enabling high availability, automated recovery, and scalability. It also supports integration with the team's deployment and monitoring tools.
 
 ## (v) Consequences (What this makes easier, and what it rules out)
 
