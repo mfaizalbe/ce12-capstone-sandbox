@@ -512,7 +512,7 @@
       "pluginVersion": "11.4.1",
       "targets": [
         {
-          "expr": "count(ALERTS{alertname=\"NodeNotReady\", alertstate=\"firing\"})",
+          "expr": "count(ALERTS{alertname=\"NodeNotReady\", alertstate=\"firing\"}) or vector(0)",
           "instant": true,
           "legendFormat": "NodeNotReady Firing",
           "refId": "A"
@@ -576,7 +576,7 @@
       "pluginVersion": "11.4.1",
       "targets": [
         {
-          "expr": "count(ALERTS{alertname=\"RetailStorePodsPending\", alertstate=\"firing\"})",
+          "expr": "count(ALERTS{alertname=\"RetailStorePodsPending\", alertstate=\"firing\"}) or vector(0)",
           "instant": true,
           "legendFormat": "RetailStorePodsPending Firing",
           "refId": "A"
