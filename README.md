@@ -23,6 +23,10 @@ Deployment happens in three layers, always in this order:
    external-dns, Prometheus stack, Loki, OpenTelemetry operator, Kubecost).
 3. **Kustomize** (`manifests/`) — deploys the application microservices and alerting rules.
 
+After the first apply, [ArgoCD](#argocd-gitops-for-the-app-layer) takes over syncing the app layer
+(`manifests/`) automatically on every commit to `main` — Terraform and Helmfile still need to be run
+manually as above.
+
 For details on what each Helm release/CRD is responsible for, see
 [`docs/installation.md`](docs/installation.md). For the metrics each service exposes and example Grafana
 queries, see [`docs/app_metrics.md`](docs/app_metrics.md).
@@ -61,6 +65,7 @@ ce12-capstone-sandbox/
 ├── manifests/
 │   ├── adot/
 │   ├── alerts/
+│   ├── argocd/
 │   ├── carts/
 │   ├── catalog/
 │   ├── checkout/
@@ -210,6 +215,30 @@ Validation
 kubectl get all -A
 ```
 
+### ArgoCD (GitOps for the app layer)
+
+The `kubectl apply -k manifests` command above also creates an ArgoCD `Application`
+(`manifests/argocd/application.yaml`) which then takes over: future commits to `manifests/` on `main` are
+synced automatically (prune + selfHeal), so you don't need to re-run that command for app changes going
+forward. It's still needed for the very first apply, and works as a manual fallback any time.
+
+Since this repo is private, ArgoCD needs read-only git credentials to clone it. Generate a deploy key and
+register it as an ArgoCD repository credential once per environment:
+
+```bash
+ssh-keygen -t ed25519 -C "argocd-ce12-capstone-sandbox-readonly" -f argocd_deploy_key -N ""
+gh repo deploy-key add argocd_deploy_key.pub --repo mfaizalbe/ce12-capstone-sandbox --title "argocd-readonly"
+
+kubectl create secret generic repo-ce12-capstone-sandbox \
+  -n argocd \
+  --from-literal=type=git \
+  --from-literal=url=git@github.com:mfaizalbe/ce12-capstone-sandbox.git \
+  --from-file=sshPrivateKey=argocd_deploy_key
+kubectl label secret repo-ce12-capstone-sandbox -n argocd argocd.argoproj.io/secret-type=repository
+
+rm argocd_deploy_key argocd_deploy_key.pub  # private key only ever lives in the k8s Secret, never in git
+```
+
 ## Shutdown
 
 Tear everything down in the reverse order it was created (application first, then platform, then infra):
@@ -229,6 +258,7 @@ want to fully decommission the environment.
 - [Store: http://grp5.sctp-sandbox.com/](http://grp5.sctp-sandbox.com/)
 - [Grafana: http://grp5-grafana.sctp-sandbox.com/](http://grp5-grafana.sctp-sandbox.com/)
 - [Kubecost: http://grp5-kubecost.sctp-sandbox.com/](http://grp5-kubecost.sctp-sandbox.com/)
+- [ArgoCD: http://grp5-argocd.sctp-sandbox.com/](http://grp5-argocd.sctp-sandbox.com/)
 
 ## Useful commands
 
@@ -242,6 +272,14 @@ aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
 
 ```bash
 kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+```
+
+### Get ArgoCD Admin Password
+
+Username is `admin`.
+
+```bash
+kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode
 ```
 
 ## DEMO: node failure simulation
