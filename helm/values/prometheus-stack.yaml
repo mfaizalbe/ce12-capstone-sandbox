@@ -62,6 +62,16 @@ grafana:
     eks.amazonaws.com/sts-regional-endpoints: "true"
   env:
     AWS_REGION: ap-southeast-1
+  plugins:
+    - grafana-x-ray-datasource
+  additionalDataSources:
+    - name: AWS X-Ray
+      type: grafana-x-ray-datasource
+      access: proxy
+      isDefault: false
+      jsonData:
+        authType: default
+        defaultRegion: ap-southeast-1
   service:
     type: ClusterIP
   ingress:

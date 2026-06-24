@@ -18,6 +18,7 @@ spec:
         prometheus.io/path: /actuator/prometheus
         prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
+        instrumentation.opentelemetry.io/inject-java: "monitoring/retail-store-instrumentation"
       labels:
         app.kubernetes.io/name: carts
         app.kubernetes.io/instance: carts

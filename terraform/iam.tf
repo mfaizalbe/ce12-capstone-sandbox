@@ -170,6 +170,33 @@ resource "aws_iam_role_policy_attachment" "grafana_cloudwatch_read" {
   policy_arn = aws_iam_policy.grafana_cloudwatch_read.arn
 }
 
+data "aws_iam_policy_document" "grafana_xray_read" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "xray:BatchGetTraces",
+      "xray:GetTraceSummaries",
+      "xray:GetTraceGraph",
+      "xray:GetGroups",
+      "xray:GetTimeSeriesServiceStatistics",
+      "xray:GetInsightSummaries",
+      "xray:GetInsight",
+      "ec2:DescribeRegions"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "grafana_xray_read" {
+  name   = "${var.cluster_name}-grafana-xray-read"
+  policy = data.aws_iam_policy_document.grafana_xray_read.json
+}
+
+resource "aws_iam_role_policy_attachment" "grafana_xray_read" {
+  role       = aws_iam_role.grafana_irsa.name
+  policy_arn = aws_iam_policy.grafana_xray_read.arn
+}
+
 data "aws_iam_policy_document" "loki_assume_role" {
   statement {
     effect  = "Allow"
@@ -231,6 +258,59 @@ resource "aws_iam_policy" "loki_s3" {
 resource "aws_iam_role_policy_attachment" "loki_s3" {
   role       = aws_iam_role.loki_irsa.name
   policy_arn = aws_iam_policy.loki_s3.arn
+}
+
+data "aws_iam_policy_document" "adot_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values   = ["system:serviceaccount:monitoring:adot-collector"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "adot_xray_write" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords",
+      "xray:GetSamplingRules",
+      "xray:GetSamplingTargets",
+      "xray:GetSamplingStatisticSummaries"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role" "adot_irsa" {
+  name               = "${var.cluster_name}-adot-irsa"
+  assume_role_policy = data.aws_iam_policy_document.adot_assume_role.json
+}
+
+resource "aws_iam_policy" "adot_xray_write" {
+  name   = "${var.cluster_name}-adot-xray-write"
+  policy = data.aws_iam_policy_document.adot_xray_write.json
+}
+
+resource "aws_iam_role_policy_attachment" "adot_xray_write" {
+  role       = aws_iam_role.adot_irsa.name
+  policy_arn = aws_iam_policy.adot_xray_write.arn
 }
 
 data "aws_iam_policy_document" "fis_assume_role" {

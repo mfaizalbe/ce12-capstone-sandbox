@@ -19,6 +19,12 @@ spec:
   serviceAccount: adot-collector
   config:
     receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
       prometheus:
         config:
           global:
@@ -73,6 +79,10 @@ spec:
         endpoint: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090/api/v1/write
       logging:
         loglevel: info
+      awsxray:
+        region: ${AWS_REGION}
+    processors:
+      batch: {}
     extensions:
       health_check: {}
       pprof:
@@ -94,3 +104,7 @@ spec:
           receivers: [prometheus]
           processors: []
           exporters: [logging, prometheusremotewrite]
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging, awsxray]
