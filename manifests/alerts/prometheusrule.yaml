@@ -10,6 +10,7 @@ metadata:
 spec:
   groups:
     - name: node-failure-simulation
+      interval: 10s
       rules:
         - alert: NodeNotReady
           expr: kube_node_status_condition{condition="Ready", status="true"} == 0
@@ -28,14 +29,14 @@ spec:
 
         - alert: RetailStorePodsPending
           expr: sum(kube_pod_status_phase{phase="Pending", namespace=~"catalog|carts|checkout|orders|ui"}) by (namespace) > 0
-          for: 15s
+          for: 5s
           labels:
             severity: warning
           annotations:
             summary: "Pods stuck Pending in namespace {{ $labels.namespace }}"
             description: >-
               One or more retail-store pods in the {{ $labels.namespace }} namespace
-              have been stuck in the Pending phase for more than 15 seconds. This is the
+              have been stuck in the Pending phase for more than 5 seconds. This is the
               expected side effect of a node failure: Kubernetes evicts the pods that
               were on the failed node and has to reschedule them onto a healthy node
               before they go back to Running.
