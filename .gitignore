@@ -36,3 +36,12 @@ override.tf.json
 .terraformrc
 terraform.rc
 *:Zone.Identifier
+
+# SSH/deploy keys and other private key material (e.g. the ArgoCD repo deploy key) -
+# these belong in k8s Secrets or out-of-band, never in git.
+id_rsa*
+id_ed25519*
+id_ecdsa*
+*.pem
+*.key
+!*.pub
