@@ -257,7 +257,7 @@ export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output tex
 export AWS_REGION="ap-southeast-1"
 export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
 export CLUSTER_NAME="retail-store-grp5"
-export NODEGROUP_NAME="${CLUSTER_NAME}-ng-application"
+export NODEGROUP_NAME=$(aws eks list-nodegroups --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --query "nodegroups[?starts_with(@, '${CLUSTER_NAME}-ng-application')]" --output text)
 export NODEGROUP_ARN=$(aws eks describe-nodegroup --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --nodegroup-name "$NODEGROUP_NAME" --query 'nodegroup.nodegroupArn' --output text)
 ```
 

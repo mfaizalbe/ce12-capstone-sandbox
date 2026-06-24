@@ -1,0 +1,30 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: retail-store-instrumentation
+  namespace: monitoring
+spec:
+  exporter:
+    endpoint: http://adot-collector.monitoring.svc.cluster.local:4318
+  propagators:
+    - tracecontext
+    - baggage
+  sampler:
+    type: parentbased_traceidratio
+    argument: "0.1"
+  java:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+  nodejs:
+    resourceRequirements:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
