@@ -30,6 +30,8 @@ spec:
           global:
             scrape_interval: 60s
             scrape_timeout: 15s
+            # Hardcoded because ArgoCD's kustomize build has no envsubst step to resolve ${VAR}
+            # placeholders, and these values never change for this cluster.
             external_labels:
               cluster: retail-store-grp5
               account_id: "255945442255"
@@ -80,6 +82,7 @@ spec:
       logging:
         loglevel: info
       awsxray:
+        # Hardcoded for the same reason as the external_labels above.
         region: ap-southeast-1
     processors:
       batch: {}
