@@ -46,7 +46,7 @@
       },
       "targets": [
         {
-          "expr": "{job=\"fluent-bit\",stream=\"application\",namespace_name=~\"$namespace\"}",
+          "expr": "{job=\"fluent-bit\",stream=\"application\",kubernetes_namespace_name=~\"$namespace\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -68,8 +68,8 @@
       },
       "targets": [
         {
-          "expr": "sum by (namespace_name) (count_over_time({job=\"fluent-bit\",stream=\"application\",namespace_name=~\"$namespace\"}[$__interval]))",
-          "legendFormat": "{{namespace_name}}",
+          "expr": "sum by (kubernetes_namespace_name) (count_over_time({job=\"fluent-bit\",stream=\"application\",kubernetes_namespace_name=~\"$namespace\"}[$__interval]))",
+          "legendFormat": "{{kubernetes_namespace_name}}",
           "queryType": "range",
           "refId": "A"
         }
