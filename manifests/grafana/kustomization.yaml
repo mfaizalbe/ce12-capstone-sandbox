@@ -16,6 +16,7 @@ configMapGenerator:
       - dashboards/retail_store_app.json
       - dashboards/retail_store_logs.json
       - dashboards/log_dashboards.json
+      - dashboards/retail_store_traces.json
     options:
       disableNameSuffixHash: true
       labels:
