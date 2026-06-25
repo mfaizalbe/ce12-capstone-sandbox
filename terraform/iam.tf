@@ -177,6 +177,7 @@ data "aws_iam_policy_document" "grafana_xray_read" {
       "xray:BatchGetTraces",
       "xray:GetTraceSummaries",
       "xray:GetTraceGraph",
+      "xray:GetServiceGraph",
       "xray:GetGroups",
       "xray:GetTimeSeriesServiceStatistics",
       "xray:GetInsightSummaries",
