@@ -23,7 +23,7 @@ Deployment happens in three layers, always in this order:
    external-dns, Prometheus stack, Loki, OpenTelemetry operator, Kubecost).
 3. **Kustomize** (`manifests/`) — deploys the application microservices and alerting rules.
 
-After the first apply, [ArgoCD](#argocd-gitops-for-the-app-layer) takes over syncing the app layer
+After the first apply, [ArgoCD](#argocd-repo-credential-set-up-before-the-kustomize-apply-below) takes over syncing the app layer
 (`manifests/`) automatically on every commit to `main` — Terraform and Helmfile still need to be run
 manually as above.
 
@@ -199,31 +199,14 @@ kubectl get pod -n monitoring -l app.kubernetes.io/name=prometheus -o jsonpath='
 kubectl get pod -n monitoring -l app.kubernetes.io/name=loki -o jsonpath='{.items[0].spec.volumes}'
 ```
 
-### Start Application with Kustomize
-
-```bash
-aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
-export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-export AWS_REGION=ap-southeast-1
-export EKS_CLUSTER_NAME=retail-store-grp5
-kubectl kustomize manifests | envsubst '${AWS_ACCOUNT_ID} ${EKS_CLUSTER_NAME} ${AWS_REGION}' | kubectl apply -f -
-```
-
-Validation
-
-```bash
-kubectl get all -A
-```
-
-### ArgoCD (GitOps for the app layer)
-
-The `kubectl apply -k manifests` command above also creates an ArgoCD `Application`
-(`manifests/argocd/application.yaml`) which then takes over: future commits to `manifests/` on `main` are
-synced automatically (prune + selfHeal), so you don't need to re-run that command for app changes going
-forward. It's still needed for the very first apply, and works as a manual fallback any time.
+### ArgoCD repo credential (set up before the Kustomize apply below)
 
 Since this repo is private, ArgoCD needs read-only git credentials to clone it. Generate a deploy key and
-register it as an ArgoCD repository credential once per environment:
+register it as an ArgoCD repository credential **before** running the Kustomize apply below — that way
+ArgoCD can sync immediately once its bootstrap `Application` is created, instead of sitting in a
+transient "repository not found"/auth error until the credential shows up. This only needs to be done
+once per environment (i.e. again after a fresh `terraform apply`, since the Secret lives inside the
+cluster and doesn't survive a `terraform destroy`):
 
 ```bash
 ssh-keygen -t ed25519 -C "argocd-ce12-capstone-sandbox-readonly" -f argocd_deploy_key -N ""
@@ -238,6 +221,28 @@ kubectl label secret repo-ce12-capstone-sandbox -n argocd argocd.argoproj.io/sec
 
 rm argocd_deploy_key argocd_deploy_key.pub  # private key only ever lives in the k8s Secret, never in git
 ```
+
+### Start Application with Kustomize
+
+```bash
+aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export AWS_REGION=ap-southeast-1
+export EKS_CLUSTER_NAME=retail-store-grp5
+kubectl kustomize manifests | envsubst '${AWS_ACCOUNT_ID} ${EKS_CLUSTER_NAME} ${AWS_REGION}' | kubectl apply -f -
+```
+
+Validation
+
+```bash
+kubectl get all -A
+kubectl get application -n argocd retail-store   # should show Synced/Healthy
+```
+
+This command also creates the ArgoCD `Application` (`manifests/argocd/application.yaml`), which then
+takes over: future commits to `manifests/` on `main` are synced automatically (prune + selfHeal), so you
+don't need to re-run this command for app changes going forward. It's still needed for the very first
+apply, and works as a manual fallback any time.
 
 ## Shutdown
 
