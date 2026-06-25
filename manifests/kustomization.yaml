@@ -13,3 +13,4 @@ resources:
   - load-gen
   - kubecost
   - alerts
+  - argocd

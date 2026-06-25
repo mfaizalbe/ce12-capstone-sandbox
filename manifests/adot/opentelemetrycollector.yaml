@@ -30,10 +30,12 @@ spec:
           global:
             scrape_interval: 60s
             scrape_timeout: 15s
+            # Hardcoded because ArgoCD's kustomize build has no envsubst step to resolve ${VAR}
+            # placeholders, and these values never change for this cluster.
             external_labels:
-              cluster: ${EKS_CLUSTER_NAME}
-              account_id: ${AWS_ACCOUNT_ID}
-              region: ${AWS_REGION}
+              cluster: retail-store-grp5
+              account_id: "255945442255"
+              region: ap-southeast-1
           scrape_configs:
             - job_name: "kubernetes-pods"
               honor_labels: true
@@ -80,7 +82,8 @@ spec:
       logging:
         loglevel: info
       awsxray:
-        region: ${AWS_REGION}
+        # Hardcoded for the same reason as the external_labels above.
+        region: ap-southeast-1
     processors:
       batch: {}
     extensions:
