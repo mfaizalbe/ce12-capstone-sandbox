@@ -222,6 +222,14 @@ kubectl label secret repo-ce12-capstone-sandbox -n argocd argocd.argoproj.io/sec
 rm argocd_deploy_key argocd_deploy_key.pub  # private key only ever lives in the k8s Secret, never in git
 ```
 
+Create a secret for Discord webhook url
+
+```bash
+kubectl -n monitoring create secret generic discord-webhook \
+  --from-literal=url='https://discord.com/api/webhooks/<id>/<token>/slack' \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
 ### Start Application with Kustomize
 
 ```bash
