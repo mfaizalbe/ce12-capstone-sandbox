@@ -4,8 +4,6 @@ namespace: monitoring
 resources:
   - httproute.yaml
   - httproute-prometheus.yaml
-  - httproute-alertmanager.yaml
-  - httproute-loki.yaml
 
 # Grafana's built-in dashboard sidecar watches for ConfigMaps labeled
 # grafana_dashboard: "1" in this namespace and copies them into /tmp/dashboards
