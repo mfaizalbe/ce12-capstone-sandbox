@@ -1,3 +1,4 @@
+![CE12 Group 5](docs/images/ce12_grp5.jpeg)
 # SCTP CE12 Group 5 Capstone Project
 
 Sandbox repository for the CE12 DevOps Capstone project to experiment with application code, infrastructure, CI/CD, monitoring, and security.
