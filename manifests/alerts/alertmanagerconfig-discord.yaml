@@ -18,16 +18,8 @@ spec:
         regex: true
   receivers:
     - name: discord-webhook
-      slackConfigs:
-        - apiURL:
+      webhookConfigs:
+        - urlSecret:
             name: discord-webhook
             key: url
           sendResolved: true
-          username: Alertmanager
-          title: "[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}"
-          text: >-
-            {{ range .Alerts -}}
-            *{{ .Annotations.summary }}*
-            {{ .Annotations.description }}
-            Labels: {{ range .Labels.SortedPairs }}{{ .Name }}={{ .Value }} {{ end }}
-            {{ end }}

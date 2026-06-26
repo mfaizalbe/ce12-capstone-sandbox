@@ -25,6 +25,9 @@ prometheus:
 alertmanager:
   enabled: true
   alertmanagerSpec:
+    alertmanagerConfigSelector:
+      matchLabels:
+        release: prometheus
     nodeSelector:
       workload: observability
     tolerations:
