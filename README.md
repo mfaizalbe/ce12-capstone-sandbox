@@ -5,7 +5,7 @@ Sandbox repository for the CE12 DevOps Capstone project — a hands-on explorati
 
 ## The Team
 
-- SK
+- SK (Team Lead)
 - Arista
 - Gina
 - Indy
