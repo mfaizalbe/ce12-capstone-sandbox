@@ -69,7 +69,7 @@ module "eks" {
       iam_role_name            = "${var.cluster_name}-ng-application"
       iam_role_use_name_prefix = true
 
-      min_size     = 4 # bumped from 3 for OTel auto-instrumentation headroom (t3.large blocked by account guardrail, see instance_types comment)
+      min_size     = 3 # bumped from 3 for OTel auto-instrumentation headroom (t3.large blocked by account guardrail, see instance_types comment)
       max_size     = 5
       desired_size = 3 # ignored by the module's lifecycle (scaling_config[0].desired_size) -- bump live via `aws eks update-nodegroup-config`
 
