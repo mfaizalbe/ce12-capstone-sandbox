@@ -226,7 +226,7 @@ Create a secret for Discord webhook url
 
 ```bash
 kubectl -n monitoring create secret generic discord-webhook \
-  --from-literal=url='https://discord.com/api/webhooks/<id>/<token>' \
+  --from-literal=url='https://discord.com/api/webhooks/<id>/<token>/slack' \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
