@@ -3,3 +3,4 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - prometheusrule.yaml
+  - alertmanagerconfig-discord.yaml

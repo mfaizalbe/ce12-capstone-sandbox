@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1beta1
+kind: AlertmanagerConfig
+metadata:
+  name: discord-webhook
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  route:
+    receiver: discord-webhook
+    groupBy: ["alertname", "namespace", "severity"]
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 4h
+    matchers:
+      - name: severity
+        value: warning|critical
+        regex: true
+  receivers:
+    - name: discord-webhook
+      webhookConfigs:
+        - urlSecret:
+            name: discord-webhook
+            key: url
+          sendResolved: true
