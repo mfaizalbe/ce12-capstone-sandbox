@@ -131,7 +131,7 @@ step below, so you don't need to copy/paste volume IDs by hand.
 
 ## Startup
 
-### Provision VPC, EKS Cluster, Helm Installation of Services
+### Provision VPC, EKS Cluster
 
 ```bash
 terraform -chdir=terraform init
