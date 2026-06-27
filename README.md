@@ -432,6 +432,120 @@ instances in the `application` node group on purpose, so you can watch the clust
 (see [`manifests/alerts/prometheusrule.yaml`](manifests/alerts/prometheusrule.yaml)). The IAM role FIS
 assumes is created by Terraform (`fis_role` in [`terraform/iam.tf`](terraform/iam.tf)).
 
+Configure Environment Variables
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export AWS_REGION="ap-southeast-1"
+export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
+export CLUSTER_NAME="retail-store-grp5"
+
+export NODEGROUP_NAME=$(aws eks list-nodegroups \
+  --region "$AWS_REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --query "nodegroups[?starts_with(@, '${CLUSTER_NAME}-ng-application')]" \
+  --output text)
+
+export NODEGROUP_ARN=$(aws eks describe-nodegroup \
+  --region "$AWS_REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --nodegroup-name "$NODEGROUP_NAME" \
+  --query "nodegroup.nodegroupArn" \
+  --output text)
+Recreate the Experiment Template
+
+Important
+
+Always recreate the experiment template before running this demo.
+
+AWS FIS experiment templates store the EKS managed node group ARN. Whenever the EKS cluster or managed node group is recreated (for example after a Terraform destroy/apply), the node group ARN changes. Reusing an old experiment template causes the experiment to fail with:
+
+InvalidTarget:
+The following targeted node groups do not exist.
+
+Recreating the template ensures AWS FIS always targets the current node group.
+
+Delete Existing NodeDeletion Templates
+
+List existing templates:
+
+aws fis list-experiment-templates \
+  --region "$AWS_REGION" \
+  --output table
+
+Delete any existing NodeDeletion experiment templates before creating a new one:
+
+aws fis delete-experiment-template \
+  --id <EXPERIMENT_TEMPLATE_ID> \
+  --region "$AWS_REGION"
+
+Repeat for each NodeDeletion template returned by the previous command.
+
+Create a New Experiment Template
+export NODE_EXP_ID=$(aws fis create-experiment-template \
+  --region "$AWS_REGION" \
+  --cli-input-json '{
+    "description":"NodeDeletion",
+    "targets":{
+      "target-nodegroup":{
+        "resourceType":"aws:eks:nodegroup",
+        "resourceArns":["'"$NODEGROUP_ARN"'"],
+        "selectionMode":"ALL"
+      }
+    },
+    "actions":{
+      "nodedeletion":{
+        "actionId":"aws:eks:terminate-nodegroup-instances",
+        "parameters":{
+          "instanceTerminationPercentage":"67"
+        },
+        "targets":{
+          "Nodegroups":"target-nodegroup"
+        }
+      }
+    },
+    "stopConditions":[
+      {
+        "source":"none"
+      }
+    ],
+    "roleArn":"'"$FIS_ROLE_ARN"'",
+    "tags":{
+      "ExperimentSuffix":"DEMO"
+    }
+  }' \
+  --output json | jq -r '.experimentTemplate.id')
+
+Verify that the template was created successfully:
+
+echo "$NODE_EXP_ID"
+Run the Experiment
+aws fis start-experiment \
+  --region "$AWS_REGION" \
+  --experiment-template-id "$NODE_EXP_ID"
+Monitor the Cluster
+
+Open separate terminals and monitor the cluster while the experiment is running.
+
+Watch node status:
+
+watch kubectl get nodes
+
+Watch all pods:
+
+watch kubectl get pods -A
+Expected Behaviour
+
+During the experiment you should observe the following sequence:
+
+One or more application nodes transition to NotReady.
+AWS FIS terminates approximately 67% of the application node group instances.
+Amazon EKS automatically launches replacement EC2 instances.
+New worker nodes join the Kubernetes cluster.
+Kubernetes reschedules affected application pods onto the replacement nodes.
+Prometheus alerts NodeNotReady and RetailStorePodsPending fire during the disruption.
+Once replacement nodes become Ready and workloads recover, the alerts automatically clear.
+
+This demonstrates the cluster's self-healing capability under node failure conditions.
+
 ```bash
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 export AWS_REGION="ap-southeast-1"
