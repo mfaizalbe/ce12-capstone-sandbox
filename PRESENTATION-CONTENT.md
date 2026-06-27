@@ -64,7 +64,6 @@ export NODE_EXP_ID=$(aws fis create-experiment-template --region "$AWS_REGION" -
 Run it (this actually terminates instances — only do this on a cluster you're OK disrupting):
 
 ```bash
-export NODE_EXP_ID=EXTEKNnXLxNWUDCmE # when repeating the experiment only
 aws fis start-experiment --region "$AWS_REGION" --experiment-template-id "$NODE_EXP_ID" --output json
 ```
 
@@ -110,4 +109,4 @@ git push
 
 # 7. ArgoCD
 
-# 8. Fault injection and node generator
+# 8. Demo -- Fault injection and node generator
