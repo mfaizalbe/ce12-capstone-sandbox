@@ -42,11 +42,11 @@
               },
               {
                 "color": "#EAB839",
-                "value": 5
+                "value": 2
               },
               {
                 "color": "green",
-                "value": 6
+                "value": 3
               }
             ]
           },
@@ -81,7 +81,7 @@
       "pluginVersion": "11.4.1",
       "targets": [
         {
-          "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+          "expr": "count(kube_node_status_condition{condition=\"Ready\",status=\"true\"} and on(node) kube_node_labels{label_eks_amazonaws_com_nodegroup=~\".*application.*\"})",
           "instant": true,
           "legendFormat": "Ready Nodes",
           "refId": "A"
