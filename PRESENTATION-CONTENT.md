@@ -99,7 +99,7 @@ git push
 
 # 2. Linking up DevOps Agent to our project
 
-# 3. Application architecture (EKS, UI, database, microservices, external DNS (Route 53) controller, load balancer controller)
+# 3. Application architecture (EKS, UI, database, microservices, external DNS (Route 53) controller, load balancer controller, API gateway)
 
 # 4. Logs management architecture
 
