@@ -52,7 +52,7 @@ If something breaks → Alertmanager sends a Discord alert
 ### What This Project Is Not
 
 - **Not a production system** — there is no HTTPS, no secrets manager, and no hardened security posture
-- **Not a CI/CD pipeline** — there is no automated image building or testing; the app images are pre-built from the [AWS EKS Workshop](https://www.eksworkshop.com/) reference app and we deploy them as-is
+- **Not a CI/CD pipeline** — there is no automated image building or testing; the app images are pre-built from the [AWS EKS Workshop](https://www.eksworkshop.com/docs/introduction/getting-started/about) reference app and we deploy them as-is
 - **Not multi-environment** — there is one cluster and one environment; a real setup would have separate dev, staging, and production
 - **Not auto-scaling** — pod and node scaling are not configured
 - **Not owned application code** — we do not control what is inside the container images; this project is about the platform, not the application
