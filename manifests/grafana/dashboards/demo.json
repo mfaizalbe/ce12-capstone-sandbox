@@ -81,7 +81,7 @@
       "pluginVersion": "11.4.1",
       "targets": [
         {
-          "expr": "count(kube_node_status_condition{condition=\"Ready\",status=\"true\"} and on(node) kube_node_labels{label_eks_amazonaws_com_nodegroup=~\".*application.*\"})",
+          "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
           "instant": true,
           "legendFormat": "Ready Nodes",
           "refId": "A"
