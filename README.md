@@ -440,7 +440,13 @@ export NODEGROUP_NAME=$(aws eks list-nodegroups --region "$AWS_REGION" --cluster
 export NODEGROUP_ARN=$(aws eks describe-nodegroup --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --nodegroup-name "$NODEGROUP_NAME" --query 'nodegroup.nodegroupArn' --output text)
 ```
 
-Create the experiment template (this only defines the experiment, it does not run anything yet):
+Check if an experiment template already exists (skip creation if one is listed):
+
+```bash
+aws fis list-experiment-templates --region "$AWS_REGION" --output table
+```
+
+Create the experiment template only if one does not already exist (this only defines the experiment, it does not run anything yet):
 
 ```bash
 export NODE_EXP_ID=$(aws fis create-experiment-template --region "$AWS_REGION" --cli-input-json '{"description":"NodeDeletion","targets":{"target-nodegroup":{"resourceType":"aws:eks:nodegroup","resourceArns":["'$NODEGROUP_ARN'"],"selectionMode":"ALL"}},"actions":{"nodedeletion":{"actionId":"aws:eks:terminate-nodegroup-instances","parameters":{"instanceTerminationPercentage":"67"},"targets":{"Nodegroups":"target-nodegroup"}}},"stopConditions":[{"source":"none"}],"roleArn":"'$FIS_ROLE_ARN'","tags":{"ExperimentSuffix":"DEMO"}}' --output json | jq -r '.experimentTemplate.id')
