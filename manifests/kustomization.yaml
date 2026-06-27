@@ -8,7 +8,9 @@ resources:
   - ui
   - fluentbit
   - adot
+  - otel-instrumentation
   - grafana
   - load-gen
   - kubecost
   - alerts
+  - argocd

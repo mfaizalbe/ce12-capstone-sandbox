@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/created-by: eks-workshop
     app.kubernetes.io/type: app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: ui
@@ -18,6 +18,7 @@ spec:
         prometheus.io/path: /actuator/prometheus
         prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
+        instrumentation.opentelemetry.io/inject-java: "monitoring/retail-store-instrumentation"
       labels:
         app.kubernetes.io/name: ui
         app.kubernetes.io/instance: ui
@@ -74,12 +75,12 @@ spec:
               path: /actuator/health/liveness
               port: 8080
             initialDelaySeconds: 45
-            timeoutSeconds: 5
+            timeoutSeconds: 10
             periodSeconds: 20
-            failureThreshold: 3
+            failureThreshold: 5
           readinessProbe:
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health/readiness
               port: 8080
             initialDelaySeconds: 45
             timeoutSeconds: 5

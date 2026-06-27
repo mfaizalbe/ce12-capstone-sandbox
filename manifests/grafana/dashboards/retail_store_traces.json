@@ -1,0 +1,210 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Overview",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "bargauge",
+      "title": "Trace Count by Service",
+      "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 1 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "valueMode": "color",
+        "minVizWidth": 0,
+        "minVizHeight": 10
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
+        "overrides": [
+          { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+        ]
+      },
+      "transformations": [
+        { "id": "filterFieldsByName", "options": { "include": { "names": ["Time", "Total Count"] } } }
+      ],
+      "targets": [
+        { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "row",
+      "title": "Per-Service Trace Metrics",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 },
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Average Response Time by Service",
+      "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "s" },
+        "overrides": [
+          { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+        ]
+      },
+      "transformations": [
+        { "id": "filterFieldsByName", "options": { "include": { "names": ["Time", "Average Response Time"] } } }
+      ],
+      "targets": [
+        { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Error Count by Service",
+      "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": [
+          { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+        ]
+      },
+      "transformations": [
+        { "id": "filterFieldsByName", "options": { "include": { "names": ["Time", "Error Count"] } } }
+      ],
+      "targets": [
+        { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Fault Count by Service",
+      "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "fieldConfig": {
+        "defaults": { "unit": "short" },
+        "overrides": [
+          { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+        ]
+      },
+      "transformations": [
+        { "id": "filterFieldsByName", "options": { "include": { "names": ["Time", "Fault Count"] } } }
+      ],
+      "targets": [
+        { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Trace Drilldown",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "panels": []
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Slow / Error Traces (responsetime > 1s OR error)",
+      "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 33 },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Response Time" }, "properties": [{ "id": "unit", "value": "s" }] }
+        ]
+      },
+      "options": {
+        "sortBy": [{ "displayName": "Start Time", "desc": true }]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
+          "queryType": "getTraceSummaries",
+          "query": "(responsetime > 1 OR error) AND (service(\"carts\") OR service(\"checkout\") OR service(\"orders\") OR service(\"ui\"))",
+          "region": "ap-southeast-1",
+          "group": { "GroupARN": "default", "GroupName": "Default" }
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["retail-store", "observability", "traces", "x-ray"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "AWS X-Ray", "value": "AWS X-Ray" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "X-Ray Datasource",
+        "multi": false,
+        "name": "xrayDatasource",
+        "options": [],
+        "query": "grafana-x-ray-datasource",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Retail Store Traces (AWS X-Ray)",
+  "uid": "retail-store-traces-xray",
+  "version": 1,
+  "weekStart": ""
+}

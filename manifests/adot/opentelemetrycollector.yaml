@@ -19,15 +19,23 @@ spec:
   serviceAccount: adot-collector
   config:
     receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
       prometheus:
         config:
           global:
             scrape_interval: 60s
             scrape_timeout: 15s
+            # Hardcoded because ArgoCD's kustomize build has no envsubst step to resolve ${VAR}
+            # placeholders, and these values never change for this cluster.
             external_labels:
-              cluster: ${EKS_CLUSTER_NAME}
-              account_id: ${AWS_ACCOUNT_ID}
-              region: ${AWS_REGION}
+              cluster: retail-store-grp5
+              account_id: "255945442255"
+              region: ap-southeast-1
           scrape_configs:
             - job_name: "kubernetes-pods"
               honor_labels: true
@@ -73,6 +81,11 @@ spec:
         endpoint: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090/api/v1/write
       logging:
         loglevel: info
+      awsxray:
+        # Hardcoded for the same reason as the external_labels above.
+        region: ap-southeast-1
+    processors:
+      batch: {}
     extensions:
       health_check: {}
       pprof:
@@ -94,3 +107,7 @@ spec:
           receivers: [prometheus]
           processors: []
           exporters: [logging, prometheusremotewrite]
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging, awsxray]

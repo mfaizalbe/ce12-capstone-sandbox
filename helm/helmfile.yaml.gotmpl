@@ -11,6 +11,8 @@ repositories:
     url: https://grafana.github.io/helm-charts
   - name: kubecost
     url: https://kubecost.github.io/kubecost
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
 
 helmDefaults:
   wait: true
@@ -112,4 +114,14 @@ releases:
       - monitoring/prometheus
     values:
       - values/kubecost.yaml
+
+  - name: argocd
+    namespace: argocd
+    createNamespace: true
+    chart: argo/argo-cd
+    version: 9.7.0
+    wait: false
+    atomic: false
+    values:
+      - values/argocd.yaml
 
