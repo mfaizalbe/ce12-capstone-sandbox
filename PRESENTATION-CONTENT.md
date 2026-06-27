@@ -92,8 +92,22 @@ git push
 
 ## Will show changed replica and syncing
 
-# B | ARCHITECTURE
+# B | SLIDES & ARCHITECTURE
 
-Webhook alerts to Discord
+## ARCHITECTURE
 
-Linking up DevOps Agent to our project
+# 1. Webhook alerts to Discord
+
+# 2. Linking up DevOps Agent to our project
+
+# 3. Application architecture (EKS, UI, database, microservices, external DNS (Route 53) controller, load balancer controller)
+
+# 4. Logs management architecture
+
+# 5. Metrics (including Kubecost)
+
+# 6. Traces
+
+# 7. ArgoCD
+
+# 8. Fault injection and node generator
