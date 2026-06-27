@@ -1017,9 +1017,6 @@
         <mxCell id="gfrTBU01igM4Q6RSgTQ9-19" parent="gfrTBU01igM4Q6RSgTQ9-1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#326CE5;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.kubernetes.icon;prIcon=ds;" value="Fluent Bit&#xa;(DaemonSet)" vertex="1">
           <mxGeometry height="55" width="55" x="400" y="450" as="geometry" />
         </mxCell>
-        <mxCell id="5MNpEqZxPLsWCqVg_nTv-0" edge="1" parent="gfrTBU01igM4Q6RSgTQ9-1" source="gfrTBU01igM4Q6RSgTQ9-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="gfrTBU01igM4Q6RSgTQ9-6" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="gfrTBU01igM4Q6RSgTQ9-20" parent="gfrTBU01igM4Q6RSgTQ9-1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#326CE5;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.kubernetes.icon;prIcon=sts;" value="Loki" vertex="1">
           <mxGeometry height="55" width="55" x="640" y="450" as="geometry" />
         </mxCell>
