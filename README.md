@@ -433,6 +433,8 @@ instances in the `application` node group on purpose, so you can watch the clust
 assumes is created by Terraform (`fis_role` in [`terraform/iam.tf`](terraform/iam.tf)).
 
 Configure Environment Variables
+
+```bash
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 export AWS_REGION="ap-southeast-1"
 export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
@@ -450,6 +452,7 @@ export NODEGROUP_ARN=$(aws eks describe-nodegroup \
   --nodegroup-name "$NODEGROUP_NAME" \
   --query "nodegroup.nodegroupArn" \
   --output text)
+```
 Recreate the Experiment Template
 
 Important
@@ -466,20 +469,22 @@ Recreating the template ensures AWS FIS always targets the current node group.
 Delete Existing NodeDeletion Templates
 
 List existing templates:
-
+```bash
 aws fis list-experiment-templates \
   --region "$AWS_REGION" \
   --output table
-
+```
 Delete any existing NodeDeletion experiment templates before creating a new one:
-
+```bash
 aws fis delete-experiment-template \
   --id <EXPERIMENT_TEMPLATE_ID> \
   --region "$AWS_REGION"
+```
 
 Repeat for each NodeDeletion template returned by the previous command.
 
 Create a New Experiment Template
+```bash
 export NODE_EXP_ID=$(aws fis create-experiment-template \
   --region "$AWS_REGION" \
   --cli-input-json '{
@@ -513,25 +518,27 @@ export NODE_EXP_ID=$(aws fis create-experiment-template \
     }
   }' \
   --output json | jq -r '.experimentTemplate.id')
+```
 
 Verify that the template was created successfully:
-
+```bash
 echo "$NODE_EXP_ID"
 Run the Experiment
 aws fis start-experiment \
   --region "$AWS_REGION" \
   --experiment-template-id "$NODE_EXP_ID"
+```
+
 Monitor the Cluster
 
 Open separate terminals and monitor the cluster while the experiment is running.
 
 Watch node status:
-
 watch kubectl get nodes
 
 Watch all pods:
-
 watch kubectl get pods -A
+
 Expected Behaviour
 
 During the experiment you should observe the following sequence:
