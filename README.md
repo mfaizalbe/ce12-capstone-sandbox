@@ -523,7 +523,10 @@ export NODE_EXP_ID=$(aws fis create-experiment-template \
 Verify that the template was created successfully:
 ```bash
 echo "$NODE_EXP_ID"
+```
+
 Run the Experiment
+```bash
 aws fis start-experiment \
   --region "$AWS_REGION" \
   --experiment-template-id "$NODE_EXP_ID"
@@ -553,6 +556,7 @@ Once replacement nodes become Ready and workloads recover, the alerts automatica
 
 This demonstrates the cluster's self-healing capability under node failure conditions.
 
+TO BE DELETED START
 ```bash
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 export AWS_REGION="ap-southeast-1"
@@ -580,3 +584,4 @@ Run it (this actually terminates instances — only do this on a cluster you're 
 export NODE_EXP_ID=EXT2u2ZKrTviL8wa # when repeating the experiment only
 aws fis start-experiment --region "$AWS_REGION" --experiment-template-id "$NODE_EXP_ID" --output json
 ```
+TO BE DELETED END
