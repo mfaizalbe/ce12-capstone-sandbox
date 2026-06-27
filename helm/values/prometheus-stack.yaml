@@ -25,6 +25,8 @@ prometheus:
 alertmanager:
   enabled: true
   alertmanagerSpec:
+    alertmanagerConfigMatcherStrategy:
+      type: None
     alertmanagerConfigSelector:
       matchLabels:
         release: prometheus
