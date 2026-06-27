@@ -67,7 +67,7 @@ If something breaks → Alertmanager sends a Discord alert
 | Grafana (dashboards) | http://grp5-grafana.sctp-sandbox.com |
 | ArgoCD (deployments) | http://grp5-argocd.sctp-sandbox.com |
 | Kubecost (cloud spend) | http://grp5-kubecost.sctp-sandbox.com |
-| Prometheus | http://grp5-prometheus.sctp-sandbox.com/ |
+| Prometheus | http://grp5-prometheus.sctp-sandbox.com |
 
 ---
 
