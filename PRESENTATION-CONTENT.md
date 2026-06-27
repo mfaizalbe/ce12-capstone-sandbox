@@ -91,22 +91,70 @@ git push
 
 ## Will show changed replica and syncing
 
+
 # B | SLIDES & ARCHITECTURE
 
 ## ARCHITECTURE
+
+# 3. Application architecture (EKS, UI, database, microservices, external DNS (Route 53) controller, load balancer controller, API gateway) --> 1, 3
+
+# 4. Logs management architecture --> 5
+
+# 5. Metrics (including Kubecost) --> 5
+
+# 6. Traces --> 5
+
+
+## Look at diagrams from slides Overview, then draw.io tabs 1 (Application Microservices), 3 (API Gateway), 5 (revised Metrics, Logs, Services) [To download from draw.io as png and insert into slides]
+
+
+[Arista]
+1) Introduction
+Group Members
+SRE + DevOps Project Overview
+
+2) Architectures
+Overview (The one Indy created)
+-----------------------------------------------
+[Sze Kong]
+Application (the one in draw.io; to be converted to png)
+API Gateway (the one in draw.io; to be converted to png)
+-----------------------------------------------
+[Indy]
+Metrics, Logs, Traces (the one in draw.io; to be converted to png) + *EBS
+
+3) CD process/ pipeline
+E.g., from GitHub to AWS etc.
+
+-----------------------------------------------
+[Gina]
+4) Dashboards Overview (the four dashboards) 
+
+5) Node Failure Demo
+
+-----------------------------------------------
+[Faizal]
+6) ArgoCD Demo
+
+7) Limitations & Improvements
+
+8) Key Takeaways
+
+-----------------------------------------------
+9) Q&A
+
+
+
+
+## DONE (Make sure in DEMO section) 
 
 # 1. Webhook alerts to Discord
 
 # 2. Linking up DevOps Agent to our project
 
-# 3. Application architecture (EKS, UI, database, microservices, external DNS (Route 53) controller, load balancer controller, API gateway)
-
-# 4. Logs management architecture
-
-# 5. Metrics (including Kubecost)
-
-# 6. Traces
-
 # 7. ArgoCD
 
 # 8. Demo -- Fault injection and node generator
+
+
+
