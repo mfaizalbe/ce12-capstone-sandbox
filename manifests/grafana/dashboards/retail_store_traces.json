@@ -29,18 +29,17 @@
     },
     {
       "id": 2,
-      "type": "stat",
+      "type": "bargauge",
       "title": "Trace Count by Service",
       "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
-      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 1 },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 1 },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "orientation": "horizontal",
-        "textMode": "value_and_name",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "text": { "titleSize": 12, "valueSize": 20 }
+        "displayMode": "basic",
+        "valueMode": "color",
+        "minVizWidth": 0,
+        "minVizHeight": 10
       },
       "fieldConfig": {
         "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
