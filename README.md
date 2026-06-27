@@ -286,15 +286,15 @@ the wrong (duplicate) volume and pick up empty data instead of the original reta
 known volume ID avoids that ambiguity entirely:
 
 ```bash
-export PROMETHEUS_EBS_VOLUME_ID=vol-0fd603b3e2cf7ca08
+export PROMETHEUS_EBS_VOLUME_ID=vol-0482c73ac41267931
 export PROMETHEUS_EBS_AZ=ap-southeast-1c
-export LOKI_EBS_VOLUME_ID=vol-03735bc2949c6340d
+export LOKI_EBS_VOLUME_ID=vol-0daaa3ebc58b61715
 export LOKI_EBS_AZ=ap-southeast-1c
-export GRAFANA_EBS_VOLUME_ID=vol-051c46eca0f1598f7
+export GRAFANA_EBS_VOLUME_ID=vol-010501faf1ca92ce5
 export GRAFANA_EBS_AZ=ap-southeast-1c
-export ALERTMANAGER_EBS_VOLUME_ID=vol-0604f19be368a27a1
+export ALERTMANAGER_EBS_VOLUME_ID=vol-09b5c8f38ca695887
 export ALERTMANAGER_EBS_AZ=ap-southeast-1c
-export KUBECOST_EBS_VOLUME_ID=vol-0a8125c27398ef004
+export KUBECOST_EBS_VOLUME_ID=vol-07a71d5b6d4e8741b
 export KUBECOST_EBS_AZ=ap-southeast-1c
 ```
 
