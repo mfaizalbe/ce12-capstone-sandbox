@@ -467,7 +467,30 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 1,
+                "to": 1000,
+                "result": {
+                  "text": "FIRING!",
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -493,9 +516,9 @@
       },
       "id": 6,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
-        "justifyMode": "auto",
+        "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
@@ -506,7 +529,7 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "value_and_name",
+        "textMode": "auto",
         "wideLayout": true
       },
       "pluginVersion": "11.4.1",
@@ -514,7 +537,7 @@
         {
           "expr": "count(ALERTS{alertname=\"NodeNotReady\", alertstate=\"firing\"}) or vector(0)",
           "instant": true,
-          "legendFormat": "NodeNotReady Firing",
+          "legendFormat": "NodeNotReady",
           "refId": "A"
         }
       ],
@@ -531,7 +554,30 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 1,
+                "to": 1000,
+                "result": {
+                  "text": "FIRING!",
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -557,9 +603,9 @@
       },
       "id": 7,
       "options": {
-        "colorMode": "value",
+        "colorMode": "background",
         "graphMode": "none",
-        "justifyMode": "auto",
+        "justifyMode": "center",
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
@@ -570,7 +616,7 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "value_and_name",
+        "textMode": "auto",
         "wideLayout": true
       },
       "pluginVersion": "11.4.1",
@@ -578,7 +624,7 @@
         {
           "expr": "count(ALERTS{alertname=\"RetailStorePodsPending\", alertstate=\"firing\"}) or vector(0)",
           "instant": true,
-          "legendFormat": "RetailStorePodsPending Firing",
+          "legendFormat": "RetailStorePodsPending",
           "refId": "A"
         }
       ],
