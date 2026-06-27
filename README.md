@@ -547,16 +547,22 @@ Expected Behaviour
 During the experiment you should observe the following sequence:
 
 One or more application nodes transition to NotReady.
+
 AWS FIS terminates approximately 67% of the application node group instances.
+
 Amazon EKS automatically launches replacement EC2 instances.
+
 New worker nodes join the Kubernetes cluster.
+
 Kubernetes reschedules affected application pods onto the replacement nodes.
+
 Prometheus alerts NodeNotReady and RetailStorePodsPending fire during the disruption.
+
 Once replacement nodes become Ready and workloads recover, the alerts automatically clear.
 
 This demonstrates the cluster's self-healing capability under node failure conditions.
 
-TO BE DELETED START
+README TO BE DELETED START
 ```bash
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 export AWS_REGION="ap-southeast-1"
@@ -584,4 +590,4 @@ Run it (this actually terminates instances — only do this on a cluster you're 
 export NODE_EXP_ID=EXT2u2ZKrTviL8wa # when repeating the experiment only
 aws fis start-experiment --region "$AWS_REGION" --experiment-template-id "$NODE_EXP_ID" --output json
 ```
-TO BE DELETED END
+README TO BE DELETED END
