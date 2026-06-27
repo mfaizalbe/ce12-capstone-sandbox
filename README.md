@@ -536,6 +536,9 @@ Monitor the Cluster
 
 Open separate terminals and monitor the cluster while the experiment is running.
 
+Watch grafana
+http://grp5-grafana.sctp-sandbox.com/d/retail-store-node-failure-demo/
+
 Watch node status:
 watch kubectl get nodes
 
@@ -547,47 +550,11 @@ Expected Behaviour
 During the experiment you should observe the following sequence:
 
 One or more application nodes transition to NotReady.
-
 AWS FIS terminates approximately 67% of the application node group instances.
-
 Amazon EKS automatically launches replacement EC2 instances.
-
 New worker nodes join the Kubernetes cluster.
-
 Kubernetes reschedules affected application pods onto the replacement nodes.
-
 Prometheus alerts NodeNotReady and RetailStorePodsPending fire during the disruption.
-
 Once replacement nodes become Ready and workloads recover, the alerts automatically clear.
 
 This demonstrates the cluster's self-healing capability under node failure conditions.
-
-README TO BE DELETED START
-```bash
-export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-export AWS_REGION="ap-southeast-1"
-export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
-export CLUSTER_NAME="retail-store-grp5"
-export NODEGROUP_NAME=$(aws eks list-nodegroups --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --query "nodegroups[?starts_with(@, '${CLUSTER_NAME}-ng-application')]" --output text)
-export NODEGROUP_ARN=$(aws eks describe-nodegroup --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --nodegroup-name "$NODEGROUP_NAME" --query 'nodegroup.nodegroupArn' --output text)
-```
-
-Check if an experiment template already exists (skip creation if one is listed):
-
-```bash
-aws fis list-experiment-templates --region "$AWS_REGION" --output table
-```
-
-Create the experiment template only if one does not already exist (this only defines the experiment, it does not run anything yet):
-
-```bash
-export NODE_EXP_ID=$(aws fis create-experiment-template --region "$AWS_REGION" --cli-input-json '{"description":"NodeDeletion","targets":{"target-nodegroup":{"resourceType":"aws:eks:nodegroup","resourceArns":["'$NODEGROUP_ARN'"],"selectionMode":"ALL"}},"actions":{"nodedeletion":{"actionId":"aws:eks:terminate-nodegroup-instances","parameters":{"instanceTerminationPercentage":"67"},"targets":{"Nodegroups":"target-nodegroup"}}},"stopConditions":[{"source":"none"}],"roleArn":"'$FIS_ROLE_ARN'","tags":{"ExperimentSuffix":"DEMO"}}' --output json | jq -r '.experimentTemplate.id')
-```
-
-Run it (this actually terminates instances — only do this on a cluster you're OK disrupting):
-
-```bash
-export NODE_EXP_ID=EXT2u2ZKrTviL8wa # when repeating the experiment only
-aws fis start-experiment --region "$AWS_REGION" --experiment-template-id "$NODE_EXP_ID" --output json
-```
-README TO BE DELETED END
