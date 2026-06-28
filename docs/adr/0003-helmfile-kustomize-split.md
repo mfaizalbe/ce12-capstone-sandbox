@@ -11,7 +11,7 @@ Accepted
 
 The platform has two distinct categories of Kubernetes resources to manage: cluster-wide
 controllers/operators with their CRDs (AWS Load Balancer Controller, external-dns, kube-prometheus-stack,
-Loki, OpenTelemetry Operator, Kubecost), and the retail-store application workloads plus the custom
+Loki, OpenTelemetry Operator, Kubecost, ArgoCD), and the retail-store application workloads plus the custom
 resources that depend on those controllers (Deployments, Services, `HTTPRoute`, `OpenTelemetryCollector`,
 `PrometheusRule`). The team needed a way to manage both categories repeatably across a one-month project
 with five contributors.

@@ -72,7 +72,7 @@ Key constraints and requirements include:
 **Cons**
 
 * Requires self-managing storage: retained EBS volumes per component (Prometheus, Loki, Grafana,
-  Alertmanager) provisioned ahead of time and bound via presync hooks in Helmfile.
+  Alertmanager, Kubecost) provisioned ahead of time and bound via presync hooks in Helmfile.
 * More moving parts to install and keep in sync (Helm releases, CRDs, presync hooks) than a managed
   alternative.
 * The team owns upgrade and version-compatibility management across kube-prometheus-stack, Loki, and the
