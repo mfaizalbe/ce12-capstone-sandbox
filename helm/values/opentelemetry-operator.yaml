@@ -17,4 +17,4 @@ admissionWebhooks:
 
 manager:
   extraArgs:
-    - --feature-gates=+operator.autoinstrumentation.go
+    - --enable-go-instrumentation=true
