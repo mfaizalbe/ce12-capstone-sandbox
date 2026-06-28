@@ -29,6 +29,7 @@ We used the same categories of tools that engineering teams at real companies us
 | Run and manage containerised services | Amazon EKS (Kubernetes) |
 | Deploy changes automatically from Git | ArgoCD |
 | Monitor system health and performance | Prometheus + Grafana |
+| Trace requests across services | AWS X-Ray + OpenTelemetry |
 | Collect and search application logs | Fluent Bit + Loki |
 | Send alerts when something breaks | Alertmanager → Discord |
 | Track cloud spending | Kubecost |
@@ -67,7 +68,7 @@ If something breaks → Alertmanager sends a Discord alert
 | Grafana (dashboards) | http://grp5-grafana.sctp-sandbox.com |
 | ArgoCD (deployments) | http://grp5-argocd.sctp-sandbox.com |
 | Kubecost (cloud spend) | http://grp5-kubecost.sctp-sandbox.com |
-| Prometheus | http://grp5-prometheus.sctp-sandbox.com |
+| Prometheus (metrics) | http://grp5-prometheus.sctp-sandbox.com |
 
 ---
 
