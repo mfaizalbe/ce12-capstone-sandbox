@@ -114,6 +114,9 @@ Each major tool choice in this project is documented as an Architecture Decision
 | [0006](docs/adr/0006-terraform-remote-state-s3.md) | S3 remote state with native locking for Terraform |
 | [0007](docs/adr/0007-kubecost-for-cost-visibility.md) | Kubecost for cost visibility |
 | [0008](docs/adr/0008-aws-fis-for-chaos-engineering.md) | AWS FIS for chaos and failure-injection testing |
+| [0009](docs/adr/0009-argocd-gitops.md) | ArgoCD for GitOps continuous delivery of the application layer |
+| [0010](docs/adr/0010-otel-auto-instrumentation.md) | OpenTelemetry Operator injection for distributed tracing |
+| [0011](docs/adr/0011-discord-alertmanager.md) | Discord for Alertmanager notifications |
 
 ---
 
