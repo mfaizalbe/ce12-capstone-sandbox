@@ -49,7 +49,7 @@ kubectl get secret -n argocd argocd-initial-admin-secret \
 
 ---
 
-## 4. Launch DevOps Agent
+## 4. Launch DevOps Agent to Load in Background First
 
 ---
 
@@ -350,12 +350,12 @@ Amazon EKS
 
 ### 5) Kubecosts
 
-### 4) Grafana Dashboards Overview
+### 6) Grafana Dashboards Overview
 
 (i) Introduce the four dashboards.
 (ii) View alerts section.
 
-### 5) Partial Node Failure Simulation with Fault Injection Service (AWS FIS)
+### 7) Partial Node Failure Simulation with Fault Injection Service (AWS FIS)
 
 (i) Trigger node failure
 (ii) View dashboard alerts section
@@ -376,9 +376,9 @@ Observe:
 - Self-orchestration
 - Workloads returning to a healthy state
 
-### 6) Webhooked Alerts to Discord
+### 8) Webhooked Alerts to Discord
 
-### 7) DevOps Agent Integration
+### 9) DevOps Agent Integration
 
 (Return back to DevOps Agent and see if prompts have completed loading.)
 
@@ -386,17 +386,17 @@ Observe:
 
 ## Faizal
 
-### 8) ArgoCD Demo
+### 10) ArgoCD Demo
 
-### 9) Limitations & Future Improvements
+### 11) Limitations & Future Improvements
 
-### 10) Key Takeaways
+### 12) Key Takeaways
 
 ---
 
 ## All
 
-### 11) Q&A
+### 13) Q&A
 
 ---
 
