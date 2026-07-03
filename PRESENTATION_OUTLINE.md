@@ -161,7 +161,11 @@ aws fis start-experiment \
 
 ---
 
-## 11. View DevOps Agent
+## 11. View Discord Webhooked Alerts
+
+---
+
+## 12. View DevOps Agent
 
 Ask the DevOps Agent:
 
@@ -171,7 +175,7 @@ Ask the DevOps Agent:
 
 ---
 
-## 12. Wait for Recovery
+## 13. Wait for Recovery
 
 Observe:
 
@@ -181,7 +185,7 @@ Observe:
 
 ---
 
-## 13. ArgoCD Demo (Update UI Replicas)
+## 14. ArgoCD Demo (Update UI Replicas)
 
 Update replica number of UI pods (under specs) in manifests/ui/deployment.yaml from 1 to 2
 
@@ -205,7 +209,7 @@ replicas: 2
 
 ---
 
-## 14. Commit and Push Changes
+## 15. Commit and Push Changes
 
 ```bash
 git add .
@@ -217,13 +221,13 @@ git push
 
 ---
 
-## 15. Verify ArgoCD Sync
+## 16. Verify ArgoCD Sync
 
 Open the ArgoCD UI browser and confirm the application synchronises successfully.
 
 ---
 
-## 16. Verify Deployment
+## 17. Verify Deployment
 
 Confirm the updated replica count has been applied.
 
