@@ -173,7 +173,7 @@ Observe:
 
 ## 11. ArgoCD Demo (Update UI Replicas)
 
-Update replica number of UI pods in manifests/ui/deployment.yaml from 1 to 2
+Update replica number of UI pods (under specs) in manifests/ui/deployment.yaml from 1 to 2
 
 Modify:
 
