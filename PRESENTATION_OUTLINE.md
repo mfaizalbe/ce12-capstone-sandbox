@@ -1,4 +1,4 @@
-# A. Demo
+# A. Demonstration (Demo)
 
 ## 1. Connect to the AWS Cluster
 
@@ -53,13 +53,21 @@ kubectl get secret -n argocd argocd-initial-admin-secret \
 
 ---
 
-## 5. Dashboards Overview
+## 5. Show Retail Store Application
+
+---
+
+## 6. Show Kubecosts
+
+---
+
+## 7. Grafana Dashboards Overview
 
 Show list of the four main Dashboards.
 
 ---
 
-## 6. Show Demo Dashboard
+## 8. Show Demo Dashboard
 
 ### Before Node Failure
 
@@ -68,7 +76,7 @@ Show list of the four main Dashboards.
 
 ---
 
-## 7. Trigger Node Failure
+## 9. Trigger Partial Node Failure with Fault Injection Service (AWS FIS)
 
 ### (i) Configure Environment Variables
 
@@ -86,6 +94,8 @@ export NODEGROUP_NAME=$(aws eks list-nodegroups \
   --cluster-name "$CLUSTER_NAME" \
   --query "nodegroups[?starts_with(@, '${CLUSTER_NAME}-ng-application')]" \
   --output text)
+
+#Note: Amazon EKS --> Clusters --> retail-store-grp5 --> Node groups --> Group name (application)
 
 export NODEGROUP_ARN=$(aws eks describe-nodegroup \
   --region "$AWS_REGION" \
@@ -142,7 +152,7 @@ aws fis start-experiment \
 
 ---
 
-## 8. Return to the Demo Dashboard
+## 10. Return to the Demo Dashboard
 
 ### After Node Failure
 
@@ -151,17 +161,17 @@ aws fis start-experiment \
 
 ---
 
-## 9. View DevOps Agent
+## 11. View DevOps Agent
 
 Ask the DevOps Agent:
 
-- What happened in a particular cluster (indicate cluster)?
+- What happened in a particular cluster (indicate cluster e.g., retail-store-grp5, and region e.g., ap-southeast-1)?
 - What caused the incident?
 - What actions were taken?
 
 ---
 
-## 10. Wait for Recovery
+## 12. Wait for Recovery
 
 Observe:
 
@@ -171,7 +181,7 @@ Observe:
 
 ---
 
-## 11. ArgoCD Demo (Update UI Replicas)
+## 13. ArgoCD Demo (Update UI Replicas)
 
 Update replica number of UI pods (under specs) in manifests/ui/deployment.yaml from 1 to 2
 
@@ -195,7 +205,7 @@ replicas: 2
 
 ---
 
-## 12. Commit and Push Changes
+## 14. Commit and Push Changes
 
 ```bash
 git add .
@@ -207,13 +217,13 @@ git push
 
 ---
 
-## 13. Verify ArgoCD Sync
+## 15. Verify ArgoCD Sync
 
 Open the ArgoCD UI browser and confirm the application synchronises successfully.
 
 ---
 
-## 14. Verify Deployment
+## 16. Verify Deployment
 
 Confirm the updated replica count has been applied.
 
@@ -336,12 +346,16 @@ Amazon EKS
 
 ## Gina
 
-### 4) Dashboards Overview
+### 4) Retail Store Application
+
+### 5) Kubecosts
+
+### 4) Grafana Dashboards Overview
 
 (i) Introduce the four dashboards.
 (ii) View alerts section.
 
-### 5) Fault Injection (AWS FIS) and Node Failure Demonstration
+### 5) Partial Node Failure Simulation with Fault Injection Service (AWS FIS)
 
 (i) Trigger node failure
 (ii) View dashboard alerts section
@@ -364,7 +378,7 @@ Observe:
 
 ### 6) Webhooked Alerts to Discord
 
-### 7) DevOps Agent
+### 7) DevOps Agent Integration
 
 (Return back to DevOps Agent and see if prompts have completed loading.)
 
@@ -386,10 +400,12 @@ Observe:
 
 ---
 
-# D. Demo Checklist
+# D. Demonstration Checklist
 
-- [x] Dashboards Overview
-- [x] Fault Injection (AWS FIS) and Node Failure Demonstration
-- [x] Discord Webhook Alerts
+- [x] Retail store application
+- [x] Kubecosts
+- [x] Grafana Dashboards Overview
+- [x] Partial Node Failure Simulation with Fault Injection Service (AWS FIS)
+- [x] Discord Webhooked Alerts
 - [x] DevOps Agent Integration
 - [x] ArgoCD deployment
