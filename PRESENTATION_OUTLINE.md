@@ -1,6 +1,22 @@
 # A. Demo
 
-## 1. Health Check the System
+## 1. Connect to the AWS Cluster
+
+```bash
+aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
+```
+
+---
+
+## 2. Verify All Pods Are Healthy
+
+```bash
+kubectl get all -A
+```
+
+---
+
+## 3. Health Check the System
 
 Load all the URLs.
 Check Demo Dashboard and ArgoCD, and ensure that they are working.
@@ -29,22 +45,6 @@ Retrieve the ArgoCD admin password:
 ```bash
 kubectl get secret -n argocd argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 --decode
-```
-
----
-
-## 2. Connect to the AWS Cluster
-
-```bash
-aws eks --region ap-southeast-1 update-kubeconfig --name retail-store-grp5
-```
-
----
-
-## 3. Verify All Pods Are Healthy
-
-```bash
-kubectl get all -A
 ```
 
 ---
