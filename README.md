@@ -568,3 +568,8 @@ During the experiment you should observe the following sequence:
 6. Once replacement nodes become Ready and workloads recover, the alerts automatically clear.
 
 This demonstrates the cluster's self-healing capability under node failure conditions.
+
+
+### Presentation Slides
+
+Slides: [Modernizing the Retail Store: An End-to-End DevOps & SRE Journey]([(https://docs.google.com/presentation/d/1Q8uqIPG0ueoZPHuFo-w3-zNtl81ow3b1cww-qnVF-18)]
