@@ -572,4 +572,4 @@ This demonstrates the cluster's self-healing capability under node failure condi
 
 ### Presentation Slides
 
-Slides: [Modernizing the Retail Store: An End-to-End DevOps & SRE Journey]([(https://docs.google.com/presentation/d/1Q8uqIPG0ueoZPHuFo-w3-zNtl81ow3b1cww-qnVF-18)]
+Slides: [Modernizing the Retail Store: An End-to-End DevOps & SRE Journey](https://docs.google.com/presentation/d/1Q8uqIPG0ueoZPHuFo-w3-zNtl81ow3b1cww-qnVF-18)
