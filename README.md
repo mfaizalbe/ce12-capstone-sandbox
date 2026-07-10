@@ -572,4 +572,4 @@ This demonstrates the cluster's self-healing capability under node failure condi
 
 ### Presentation Slides
 
-Slides: [Deploying and Operating a Retail Platform on AWS EKS: An SRE & DevOps Journey] (https://docs.google.com/presentation/d/1Q8uqIPG0ueoZPHuFo-w3-zNtl81ow3b1cww-qnVF-18)
+Slides: [Deploying and Operating a Retail Platform on AWS EKS: An SRE & DevOps Journey](https://docs.google.com/presentation/d/1Q8uqIPG0ueoZPHuFo-w3-zNtl81ow3b1cww-qnVF-18)
