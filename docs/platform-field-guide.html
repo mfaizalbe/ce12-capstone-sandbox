@@ -1,0 +1,1390 @@
+<title>retail-store-grp5 — Platform Field Guide</title>
+<style>
+  :root{
+    --paper:#EEF0EA;
+    --panel:#FFFFFF;
+    --ink:#1B231D;
+    --ink-soft:#57635A;
+    --ink-faint:#8B968C;
+    --line:#D7DBD1;
+    --line-strong:#B9C0B4;
+    --terraform:#4C5FA6;
+    --terraform-bg:#EBEEF6;
+    --helm:#95661A;
+    --helm-bg:#F5EEDF;
+    --kustomize:#256E56;
+    --kustomize-bg:#E4F1EA;
+    --observe:#7A4C82;
+    --observe-bg:#F1E7F2;
+    --alert:#A93A2F;
+    --alert-bg:#F6E7E4;
+    --font-display: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Noto Serif", serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.55;
+    font-size:17px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto !important;}
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+  @media (prefers-reduced-motion: no-preference){
+    html{scroll-behavior:smooth;}
+  }
+
+  a{color:var(--terraform);}
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline:2px solid var(--terraform);
+    outline-offset:2px;
+  }
+
+  h1,h2,h3,h4{
+    font-family:var(--font-display);
+    font-weight:700;
+    text-wrap:balance;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+
+  .eyebrow{
+    font-family:var(--font-display);
+    text-transform:uppercase;
+    letter-spacing:0.11em;
+    font-size:0.72rem;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+
+  code, .mono{ font-family:var(--font-display); }
+
+  /* ---------- shell layout ---------- */
+  .shell{
+    display:flex;
+    align-items:flex-start;
+    max-width:1180px;
+    margin:0 auto;
+    gap:48px;
+    padding:0 28px;
+  }
+
+  nav.toc{
+    position:sticky;
+    top:0;
+    flex:0 0 220px;
+    padding:36px 0 36px 0;
+    height:100vh;
+    overflow-y:auto;
+    font-family:var(--font-display);
+    font-size:0.82rem;
+  }
+  nav.toc .toc-title{
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0 0 14px;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    counter-reset:tocnum;
+  }
+  nav.toc a{
+    counter-increment:tocnum;
+    display:block;
+    padding:6px 10px 6px 8px;
+    border-left:2px solid transparent;
+    color:var(--ink-soft);
+    text-decoration:none;
+    line-height:1.3;
+  }
+  nav.toc a::before{
+    content: counter(tocnum, decimal-leading-zero) "  ";
+    color:var(--ink-faint);
+  }
+  nav.toc a:hover{ color:var(--ink); background:rgba(0,0,0,0.03); }
+  nav.toc a.active{
+    color:var(--ink);
+    border-left-color:var(--terraform);
+    background:var(--terraform-bg);
+    font-weight:600;
+  }
+
+  main{
+    flex:1 1 auto;
+    min-width:0;
+    padding:44px 0 120px;
+  }
+
+  /* ---------- title block ---------- */
+  .titleblock{
+    border-bottom:1px solid var(--line-strong);
+    padding-bottom:28px;
+    margin-bottom:44px;
+  }
+  .titleblock .eyebrow{ margin-bottom:10px; }
+  .titleblock h1{
+    font-size:2rem;
+    margin:0 0 12px;
+    line-height:1.15;
+  }
+  .titleblock p.lede{
+    font-family:var(--font-body);
+    font-size:1.08rem;
+    color:var(--ink-soft);
+    max-width:62ch;
+    margin:0 0 18px;
+  }
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 22px;
+    font-family:var(--font-display);
+    font-size:0.76rem;
+    color:var(--ink-faint);
+  }
+  .meta-row span b{ color:var(--ink-soft); font-weight:600; }
+
+  /* ---------- sections ---------- */
+  section.sec{
+    margin-bottom:60px;
+    scroll-margin-top:20px;
+  }
+  section.sec > .eyebrow{ display:block; margin-bottom:8px; }
+  section.sec h2{
+    font-size:1.5rem;
+    margin:0 0 6px;
+  }
+  section.sec > .dek{
+    font-family:var(--font-body);
+    color:var(--ink-soft);
+    max-width:66ch;
+    margin:0 0 22px;
+    font-size:0.98rem;
+  }
+  .prose{ max-width:68ch; }
+  .prose p{ margin:0 0 14px; }
+  .prose p:last-child{ margin-bottom:0; }
+
+  h3.subhead{
+    font-size:1.02rem;
+    margin:30px 0 8px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+  h3.subhead .dot{
+    width:9px; height:9px; border-radius:50%;
+    display:inline-block;
+    flex:0 0 auto;
+  }
+
+  /* ---------- panels ---------- */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:22px 24px;
+    margin:18px 0;
+  }
+  .panel-wide{ max-width:none; }
+
+  .scrollx{ overflow-x:auto; }
+
+  table{
+    border-collapse:collapse;
+    width:100%;
+    font-size:0.92rem;
+  }
+  table caption{
+    text-align:left;
+    font-family:var(--font-display);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    margin-bottom:10px;
+  }
+  th{
+    text-align:left;
+    font-family:var(--font-display);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--line-strong);
+    padding:0 14px 9px 0;
+    white-space:nowrap;
+  }
+  td{
+    padding:11px 14px 11px 0;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tr:last-child td{ border-bottom:none; }
+  td.tag{ font-family:var(--font-display); font-weight:600; white-space:nowrap; }
+  td.num{ font-variant-numeric:tabular-nums; }
+
+  /* ---------- layer cards (terraform/helm/kustomize) ---------- */
+  .layer{
+    border:1px solid var(--line);
+    border-left:5px solid var(--layer-color, var(--ink));
+    border-radius:4px;
+    padding:22px 24px;
+    margin:16px 0 26px;
+    background:var(--panel);
+  }
+  .layer .layer-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:4px;
+  }
+  .layer .layer-num{
+    font-family:var(--font-display);
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--layer-color, var(--ink-soft));
+    font-weight:700;
+  }
+  .layer h3{
+    font-size:1.18rem;
+    margin:2px 0 4px;
+  }
+  .layer .layer-sub{
+    font-family:var(--font-display);
+    font-size:0.8rem;
+    color:var(--ink-faint);
+    margin-bottom:14px;
+  }
+  .layer--terraform{ --layer-color:var(--terraform); }
+  .layer--helm{ --layer-color:var(--helm); }
+  .layer--kustomize{ --layer-color:var(--kustomize); }
+
+  .arrow-down{
+    display:flex;
+    justify-content:center;
+    font-family:var(--font-display);
+    color:var(--ink-faint);
+    font-size:0.85rem;
+    margin:-8px 0 -2px;
+  }
+
+  ul.tight{ margin:0; padding-left:1.2em; }
+  ul.tight li{ margin-bottom:7px; }
+  ul.tight li:last-child{ margin-bottom:0; }
+
+  /* ---------- chips / tags ---------- */
+  .chip{
+    display:inline-block;
+    font-family:var(--font-display);
+    font-size:0.68rem;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:3px;
+  }
+  .chip--terraform{ background:var(--terraform-bg); color:var(--terraform); }
+  .chip--helm{ background:var(--helm-bg); color:var(--helm); }
+  .chip--kustomize{ background:var(--kustomize-bg); color:var(--kustomize); }
+  .chip--observe{ background:var(--observe-bg); color:var(--observe); }
+  .chip--alert{ background:var(--alert-bg); color:var(--alert); }
+
+  /* ---------- flow diagram ---------- */
+  .flow{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:stretch;
+    gap:0;
+    margin:20px 0;
+  }
+  .flow-step{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:13px 16px;
+    font-size:0.86rem;
+    flex:1 1 150px;
+    display:flex;
+    align-items:center;
+  }
+  .flow-arrow{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 10px;
+    color:var(--ink-faint);
+    font-family:var(--font-display);
+    flex:0 0 auto;
+  }
+
+  .stepnum{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px; height:22px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--font-display);
+    font-size:0.68rem;
+    font-weight:700;
+    flex:0 0 auto;
+    margin-right:10px;
+    font-variant-numeric:tabular-nums;
+  }
+  ol.seq{
+    list-style:none;
+    margin:0; padding:0;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  ol.seq li{ display:flex; align-items:flex-start; }
+  ol.seq li .stepnum{ margin-top:1px; }
+
+  /* ---------- glossary ---------- */
+  dl.glossary{ margin:0; }
+  dl.glossary > div{
+    display:grid;
+    grid-template-columns:180px 1fr;
+    gap:6px 20px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  dl.glossary > div:last-child{ border-bottom:none; }
+  dl.glossary dt{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:0.88rem;
+    color:var(--ink);
+  }
+  dl.glossary dd{ margin:0; color:var(--ink-soft); font-size:0.92rem; }
+
+  @media (max-width:640px){
+    dl.glossary > div{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- callout / note ---------- */
+  .note{
+    border-left:3px solid var(--alert);
+    background:var(--alert-bg);
+    padding:12px 16px;
+    border-radius:0 4px 4px 0;
+    font-size:0.9rem;
+    color:#5a221c;
+    margin:16px 0;
+  }
+  .note b{ color:var(--alert); }
+
+  /* ---------- instructor Q&A ---------- */
+  .qa-group{ margin:28px 0 0; }
+  .qa-group:first-child{ margin-top:0; }
+  details.qa{
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--panel);
+    margin-bottom:10px;
+    padding:0;
+  }
+  details.qa[open]{ border-color:var(--line-strong); }
+  details.qa summary{
+    cursor:pointer;
+    list-style:none;
+    padding:14px 18px;
+    display:flex;
+    gap:12px;
+    align-items:baseline;
+    font-weight:600;
+    font-size:0.96rem;
+  }
+  details.qa summary::-webkit-details-marker{ display:none; }
+  details.qa summary::before{
+    content:"Q";
+    font-family:var(--font-display);
+    font-size:0.68rem;
+    font-weight:700;
+    color:var(--qa-color, var(--ink-faint));
+    background:var(--qa-bg, var(--paper));
+    border-radius:50%;
+    width:20px; height:20px;
+    flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:2px;
+  }
+  details.qa .qa-a{
+    padding:0 18px 18px 50px;
+    color:var(--ink-soft);
+    font-size:0.94rem;
+  }
+  details.qa .qa-a p{ margin:0 0 10px; }
+  details.qa .qa-a p:last-child{ margin-bottom:0; }
+  details.qa .qa-a code{ font-size:0.88em; }
+  .qa-group--architecture{ --qa-color:var(--terraform); --qa-bg:var(--terraform-bg); }
+  .qa-group--reliability{ --qa-color:var(--alert); --qa-bg:var(--alert-bg); }
+  .qa-group--security{ --qa-color:var(--ink); --qa-bg:var(--line); }
+  .qa-group--cost{ --qa-color:var(--helm); --qa-bg:var(--helm-bg); }
+  .qa-group--gitops{ --qa-color:var(--kustomize); --qa-bg:var(--kustomize-bg); }
+  .qa-group--chaos{ --qa-color:var(--alert); --qa-bg:var(--alert-bg); }
+  .qa-group--observability{ --qa-color:var(--observe); --qa-bg:var(--observe-bg); }
+
+  /* ---------- file map ---------- */
+  details.file{
+    border:1px solid var(--line);
+    border-left:3px solid var(--file-color, var(--line-strong));
+    border-radius:4px;
+    background:var(--panel);
+    margin-bottom:8px;
+    padding:0;
+  }
+  details.file[open]{ border-color:var(--line-strong); border-left-color:var(--file-color, var(--line-strong)); }
+  details.file summary{
+    cursor:pointer;
+    list-style:none;
+    padding:12px 16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 10px;
+    align-items:baseline;
+  }
+  details.file summary::-webkit-details-marker{ display:none; }
+  details.file summary::before{
+    content:"›";
+    color:var(--file-color, var(--ink-faint));
+    font-weight:700;
+    font-family:var(--font-display);
+  }
+  details.file summary .file-path{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:0.86rem;
+    color:var(--ink);
+  }
+  details.file summary .file-desc{
+    font-family:var(--font-body);
+    color:var(--ink-soft);
+    font-size:0.88rem;
+  }
+  details.file .file-links{
+    margin:0;
+    padding:0 16px 16px 30px;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+  }
+  details.file .file-links li{ margin-bottom:7px; }
+  details.file .file-links li:last-child{ margin-bottom:0; }
+  details.file .file-links code{ font-size:0.92em; }
+  .file-group--terraform{ --file-color:var(--terraform); }
+  .file-group--helm{ --file-color:var(--helm); }
+  .file-group--kustomize{ --file-color:var(--kustomize); }
+  .filesub{
+    font-family:var(--font-display);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    margin:22px 0 8px;
+  }
+  .filesub:first-child{ margin-top:0; }
+
+  /* ---------- presenter cheat sheet ---------- */
+  .whoblock{
+    display:flex;
+    gap:16px;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+    align-items:flex-start;
+  }
+  .whoblock:last-child{ border-bottom:none; }
+  .who-name{
+    flex:0 0 96px;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:0.88rem;
+    padding-top:2px;
+  }
+  .who-topics{ flex:1; font-size:0.92rem; }
+  .who-topics ul{ margin:0; padding-left:1.1em; }
+  .who-topics li{ margin-bottom:4px; }
+
+  footer.pagefoot{
+    max-width:68ch;
+    margin-top:60px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-family:var(--font-display);
+    font-size:0.74rem;
+    color:var(--ink-faint);
+  }
+
+  @media (max-width:880px){
+    .shell{ flex-direction:column; gap:0; }
+    nav.toc{
+      position:static;
+      width:100%;
+      height:auto;
+      overflow:visible;
+      padding:20px 0 24px;
+      border-bottom:1px solid var(--line-strong);
+    }
+    nav.toc ol{ flex-direction:row; flex-wrap:wrap; gap:4px 6px; }
+    nav.toc a{ border-left:none; border-bottom:2px solid transparent; padding:5px 8px; }
+    nav.toc a.active{ border-bottom-color:var(--terraform); border-left-color:transparent; }
+    main{ padding:28px 0 100px; }
+  }
+</style>
+
+<div class="shell">
+  <nav class="toc" aria-label="Table of contents">
+    <p class="toc-title">On this page</p>
+    <ol>
+      <li><a href="#minute">The one-minute version</a></li>
+      <li><a href="#tools">What each tool does</a></li>
+      <li><a href="#layers">The three layers, in order</a></li>
+      <li><a href="#filemap">File-by-file map</a></li>
+      <li><a href="#services">The five microservices</a></li>
+      <li><a href="#traffic">How a request gets in</a></li>
+      <li><a href="#observability">Watching the system</a></li>
+      <li><a href="#gitops">How a change ships</a></li>
+      <li><a href="#chaos">Breaking it on purpose</a></li>
+      <li><a href="#decisions">Why we chose this</a></li>
+      <li><a href="#limits">What we left out</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+      <li><a href="#instructor-qa">Questions instructors will ask</a></li>
+      <li><a href="#presenting">Presenting this</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="titleblock">
+      <p class="eyebrow">SCTP CE12 · Group 5 Capstone · retail-store-grp5</p>
+      <h1>The Platform, Explained in Plain English</h1>
+      <p class="lede">Everything this repository builds and why — written so you can read it once and then explain any part of it to someone else without notes. No prior Kubernetes or AWS knowledge assumed.</p>
+      <div class="meta-row">
+        <span>Cluster: <b>retail-store-grp5</b></span>
+        <span>Region: <b>ap-southeast-1</b></span>
+        <span>Order of operations: <b>Terraform → Helmfile → Kustomize</b></span>
+      </div>
+    </div>
+
+    <!-- 1 -->
+    <section class="sec" id="minute">
+      <span class="eyebrow">Start here</span>
+      <h2>The one-minute version</h2>
+      <div class="prose">
+        <p>Five people built a working online store on AWS, using the same category of tools real engineering teams use to run production software: infrastructure written as code, containers orchestrated by Kubernetes, deployments driven by Git instead of by hand, and a full stack for watching what's happening and knowing when it breaks.</p>
+        <p>The store itself — a catalogue, a cart, checkout, orders, and a UI that ties them together — isn't the point. It's a stand-in. The five container images are pulled pre-built from AWS's own reference app; nobody on the team wrote or owns that application code. The actual capstone is everything <em>around</em> the app: how do you provision a cluster the same way every time, ship a change without anyone typing a deploy command, get paged the moment something breaks, and know what it's costing you to run.</p>
+        <p>That's what the rest of this page walks through, roughly in the order you'd explain it to someone who's never seen the repo.</p>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="sec" id="tools">
+      <span class="eyebrow">The cast</span>
+      <h2>What each tool actually does</h2>
+      <p class="dek">Ten names get thrown around a lot in this repo. Here's what each one is actually for, in one sentence.</p>
+      <div class="panel scrollx">
+        <table>
+          <thead>
+            <tr><th>Tool</th><th>Job title</th><th>What it does, in plain terms</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="tag" style="color:var(--terraform)">Terraform</td><td>Infrastructure builder</td><td>Writes down, as code, exactly which AWS resources should exist. Run one command and it builds — or rebuilds — the whole network and cluster the same way every time, instead of someone clicking through the AWS console.</td></tr>
+            <tr><td class="tag" style="color:var(--terraform)">Amazon EKS</td><td>Container runtime</td><td>AWS's managed Kubernetes. Decides which physical server each piece of the app runs on, restarts anything that crashes, and moves work off a server that dies.</td></tr>
+            <tr><td class="tag" style="color:var(--helm)">Helmfile</td><td>Platform installer</td><td>A shopping list of "Helm charts" — pre-packaged installs of software like the load balancer controller or Prometheus — applied in the right order.</td></tr>
+            <tr><td class="tag" style="color:var(--kustomize)">Kustomize</td><td>App deployer</td><td>Applies the plain YAML files describing the store's five services. No templating language, just layered configuration.</td></tr>
+            <tr><td class="tag" style="color:var(--kustomize)">ArgoCD</td><td>Auto-pilot</td><td>Watches this GitHub repo and applies any change automatically, usually within about three minutes — nobody has to run a deploy command.</td></tr>
+            <tr><td class="tag" style="color:var(--observe)">Prometheus + Grafana</td><td>Metrics &amp; dashboards</td><td>Prometheus counts things (CPU, memory, requests, errors) every few seconds; Grafana draws those numbers as the dashboards the team looks at.</td></tr>
+            <tr><td class="tag" style="color:var(--observe)">Fluent Bit + Loki</td><td>Log pipeline</td><td>Fluent Bit tails every container's log output and ships it off; Loki stores it and makes it searchable from inside Grafana.</td></tr>
+            <tr><td class="tag" style="color:var(--observe)">OpenTelemetry + X-Ray</td><td>Request tracing</td><td>Follows one shopping request as it hops between services, so you can see exactly which one was slow.</td></tr>
+            <tr><td class="tag" style="color:var(--alert)">Alertmanager → Discord</td><td>The messenger</td><td>When Prometheus notices something's actually wrong, Alertmanager pushes a message straight into the team's Discord.</td></tr>
+            <tr><td class="tag" style="color:var(--observe)">Kubecost</td><td>Cost tracking</td><td>Breaks the AWS bill down by Kubernetes namespace, so "catalog costs $X a month" has an actual answer instead of one lump invoice.</td></tr>
+            <tr><td class="tag" style="color:var(--helm)">external-dns</td><td>DNS robot</td><td>Watches the cluster for new routes and automatically writes the matching Route 53 DNS record — nobody edits DNS by hand.</td></tr>
+            <tr><td class="tag" style="color:var(--alert)">AWS FIS</td><td>Professional troublemaker</td><td>Deliberately kills real EC2 servers on command, to prove the alerts and self-healing actually work instead of just trusting the YAML.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="sec" id="layers">
+      <span class="eyebrow">Deployment order</span>
+      <h2>The three layers, in order</h2>
+      <p class="dek">Everything in this repo goes down in exactly one sequence, and each layer depends on the one before it existing first. Think of it like building a house: you can't install appliances before the wiring exists, and nobody can move in before the appliances work.</p>
+
+      <div class="layer layer--terraform">
+        <div class="layer-head">
+          <span class="layer-num">Layer 1 of 3</span>
+          <span class="chip chip--terraform">terraform/</span>
+        </div>
+        <h3>Terraform — the land and the utilities</h3>
+        <p class="layer-sub">Builds the empty cluster and everything it needs to exist on AWS. Runs once, changes rarely.</p>
+        <ul class="tight">
+          <li><b>A private network (VPC)</b> the cluster lives inside, split across three availability zones with one shared NAT gateway for outbound internet access.</li>
+          <li><b>The EKS cluster itself</b>, split into two separate groups of servers ("node groups") that never mix:
+            <ul class="tight" style="margin-top:6px;">
+              <li><code>application</code> — 3 to 5 general-purpose servers, open to any workload, running the actual store.</li>
+              <li><code>observability</code> — 2 to 3 servers, pinned to a single AWS zone (<code>ap-southeast-1c</code>) so their attached disks never get stranded in the wrong zone, and "tainted" so <em>only</em> monitoring software is allowed to land there. A taint works like a bouncer: nothing gets scheduled onto that server unless it explicitly says it's on the list.</li>
+            </ul>
+          </li>
+          <li><b>Permissions, without passwords.</b> Instead of handing a program an AWS access key that can leak, each Kubernetes "service account" (the load balancer controller, Fluent Bit, Grafana, Loki, the tracing collector, the chaos-testing role) is given a scoped-down IAM role it can borrow temporarily, tied to its own identity. This pattern is called IRSA.</li>
+          <li><b>A shared memory.</b> Terraform needs to remember what it has already built. That memory (its "state") lives in one S3 bucket that all five team members' laptops read and write, with built-in locking so two people can't apply changes at the same time and corrupt it.</li>
+        </ul>
+      </div>
+      <div class="arrow-down">↓ once the cluster and network exist</div>
+
+      <div class="layer layer--helm">
+        <div class="layer-head">
+          <span class="layer-num">Layer 2 of 3</span>
+          <span class="chip chip--helm">helm/</span>
+        </div>
+        <h3>Helmfile — the appliances</h3>
+        <p class="layer-sub">Installs the platform software the cluster needs before the store can run on top of it. Changes occasionally.</p>
+        <div class="prose">
+          <p>A "Helm chart" is a pre-packaged, configurable install of a piece of software — think of it as an app-store listing, but for Kubernetes. Helmfile is the shopping list that installs several charts in a specific order, since some depend on others:</p>
+        </div>
+        <div class="scrollx">
+          <ol class="seq" style="margin:14px 0;">
+            <li><span class="stepnum">1</span><div><b>AWS Load Balancer Controller</b> — before it installs, a hook applies the Gateway API "CRDs" (see below), since the controller's own resources depend on them existing first.</div></li>
+            <li><span class="stepnum">2</span><div><b>external-dns</b> — waits for the load balancer controller, since it needs to see load balancers to point DNS at.</div></li>
+            <li><span class="stepnum">3</span><div><b>Prometheus stack</b> (kube-prometheus-stack) — two hooks run first: one binds the reusable, pre-created AWS disks (EBS volumes) for Prometheus/Grafana/Loki/Alertmanager/Kubecost so their data survives a teardown, the other installs Prometheus's own CRDs.</div></li>
+            <li><span class="stepnum">4</span><div><b>Loki</b> — the log storage backend.</div></li>
+            <li><span class="stepnum">5</span><div><b>OpenTelemetry Operator</b> — the piece that later injects tracing into app pods automatically.</div></li>
+            <li><span class="stepnum">6</span><div><b>Kubecost</b> — waits for Prometheus, since it reads its metrics to calculate cost.</div></li>
+            <li><span class="stepnum">7</span><div><b>ArgoCD</b> — installed last, ready to take over once the app layer below is applied for the first time.</div></li>
+          </ol>
+        </div>
+        <div class="note"><b>What's a CRD?</b> A Custom Resource Definition teaches Kubernetes a brand-new type of object it didn't understand before — like adding a new shape of LEGO brick to the box. You can't build anything with a brick that hasn't been added yet, which is exactly why this install order matters: skip ahead, and the next layer fails with a "no matches for kind" error.</div>
+      </div>
+      <div class="arrow-down">↓ once the platform software is running</div>
+
+      <div class="layer layer--kustomize">
+        <div class="layer-head">
+          <span class="layer-num">Layer 3 of 3</span>
+          <span class="chip chip--kustomize">manifests/</span>
+        </div>
+        <h3>Kustomize — moving in</h3>
+        <p class="layer-sub">Deploys the actual retail store and everything app-specific. Changes constantly — this is what the team iterates on day to day.</p>
+        <ul class="tight">
+          <li>The five store services — <code>carts</code>, <code>catalog</code>, <code>checkout</code>, <code>orders</code>, <code>ui</code> — each in their own namespace, each following the same file pattern: a namespace, a service account, a config map, a deployment, a service, and (if it needs one) a paired database deployment.</li>
+          <li>Supporting pieces: Fluent Bit (log shipping), the tracing collector, a small cron job that generates fake shopper traffic so dashboards have something to show, the alert rules, and the routing that exposes Grafana/Kubecost/ArgoCD to the outside world.</li>
+          <li>The ArgoCD <code>Application</code> resource itself — this is the one thing in this layer that changes everything downstream. The moment it's applied, ArgoCD starts watching this repo and takes over deploying every future change automatically (see <a href="#gitops">How a change ships</a>).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 3.5 -->
+    <section class="sec" id="filemap">
+      <span class="eyebrow">Reference</span>
+      <h2>File-by-file map — what links to what</h2>
+      <p class="dek">The layers above explain the shape of the system. This is the wiring diagram underneath it: for each significant file, what it creates and exactly which other file downstream depends on that — by name, not just by category. Click any file to expand it. Skim this once and you'll never have to grep the repo to answer "wait, where does this Secret/role/URL actually come from?" again.</p>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--terraform)"></span>terraform/</h3>
+      <details class="file file-group--terraform">
+        <summary><span class="file-path">vpc.tf</span><span class="file-desc">— the private network (VPC), 3 AZs, one shared NAT gateway</span></summary>
+        <ul class="tight file-links">
+          <li>→ <code>eks.tf</code>: <code>module.eks</code> consumes <code>vpc_id</code> and the private subnet IDs this file outputs</li>
+          <li>→ <code>helm/values/aws-load-balancer-controller.yaml.gotmpl</code>: the VPC ID is exported manually as <code>$VPC_ID</code> and substituted into <code>vpcId:</code> — the ALB controller needs to know which VPC to provision load balancers in</li>
+        </ul>
+      </details>
+      <details class="file file-group--terraform">
+        <summary><span class="file-path">eks.tf</span><span class="file-desc">— the EKS cluster and its two node groups</span></summary>
+        <ul class="tight file-links">
+          <li>Node group <code>application</code> (untainted, named <code>retail-store-grp5-ng-application</code>) → the FIS chaos demo looks it up by name prefix (<code>starts_with(@, '${CLUSTER_NAME}-ng-application')</code>) — this is the only node group FIS is ever pointed at</li>
+          <li>Node group <code>observability</code> (tainted <code>workload=observability:NoSchedule</code>, pinned to <code>ap-southeast-1c</code>) → matched by identical <code>nodeSelector</code>/toleration pairs in <code>helm/values/prometheus-stack.yaml</code>, <code>loki.yaml</code>, <code>kubecost.yaml</code>, <code>opentelemetry-operator.yaml</code>, and in <code>manifests/adot/opentelemetrycollector.yaml</code> + <code>manifests/load-gen/cronjob.yaml</code></li>
+          <li>→ <b>side effect worth knowing for the demo:</b> because <code>load-gen</code> runs on the <em>observability</em> group, FIS killing the <em>application</em> group never stops the fake traffic — that's why the dashboards keep showing live activity/errors all the way through the failure</li>
+          <li><code>access_entries</code> (cluster-admin for all 5 team members) → this is the concrete backing for the "No RBAC" line in the Limitations section</li>
+        </ul>
+      </details>
+      <details class="file file-group--terraform">
+        <summary><span class="file-path">iam.tf</span><span class="file-desc">— one narrowly-scoped IAM role per service account (IRSA), plus the FIS role</span></summary>
+        <ul class="tight file-links">
+          <li><code>lb_role</code> → <code>helm/values/aws-load-balancer-controller.yaml.gotmpl</code> (<code>aws-load-balancer-controller-sa</code>)</li>
+          <li><code>external_dns_role</code> (scoped to <code>route53:::hostedzone/*</code>) → <code>helm/values/external-dns.yaml.gotmpl</code> (<code>external-dns</code> SA)</li>
+          <li><code>ebs_csi_role</code> → not a manifest at all — wired directly into <code>main.tf</code>'s EBS CSI addon; this is what actually lets <code>helm/retained-storage.yaml</code>'s PVs attach</li>
+          <li><code>fluent_bit_irsa</code> (scoped to <code>logs:...log-group:/aws/containerinsights/*</code>) → <code>manifests/fluentbit/fluent-bit.yaml</code> ServiceAccount, annotation is a <b>literal hardcoded ARN</b></li>
+          <li><code>grafana_irsa</code> (CloudWatch + X-Ray read) → <code>helm/values/prometheus-stack.yaml</code> <code>grafana.serviceAccount.annotations</code>, also hardcoded; the X-Ray policy is what makes the X-Ray datasource in the traces dashboard work</li>
+          <li><code>loki_irsa</code> (scoped to one S3 bucket) → <code>helm/values/loki.yaml</code>, hardcoded</li>
+          <li><code>adot_irsa</code> (<code>xray:PutTraceSegments</code>) → <code>manifests/adot/serviceaccount.yaml</code>, hardcoded — but this one's hardcoding <em>is</em> documented, see the note below</li>
+          <li><code>fis_role</code> → not a manifest — its ARN is exported as <code>$FIS_ROLE_ARN</code> and passed straight into the <code>aws fis create-experiment-template</code> CLI call in the demo</li>
+        </ul>
+      </details>
+      <details class="file file-group--terraform">
+        <summary><span class="file-path">variables.tf</span><span class="file-desc">— <code>cluster_admins</code> list and <code>loki_bucket_name</code></span></summary>
+        <ul class="tight file-links">
+          <li><code>loki_bucket_name</code> (<code>retail-store-grp5-loki-chunks</code>) → must match <code>helm/values/loki.yaml</code>'s <code>storage.bucketNames.*</code> literally — there's no shared reference between the two files, just a naming convention both were typed to match by hand</li>
+        </ul>
+      </details>
+      <div class="note"><b>providers.tf</b>'s S3 backend (bucket <code>capstone-project-group5</code>) is Terraform's own state file. Don't confuse it with the Loki chunks bucket above — two different buckets, two different jobs, similarly-named project.</div>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--helm)"></span>helm/</h3>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">helmfile.yaml.gotmpl</span><span class="file-desc">— the 7 releases and the order they install in</span></summary>
+        <ul class="tight file-links">
+          <li>Order: <code>aws-load-balancer-controller</code> → <code>external-dns</code> (needs LB controller) → <code>prometheus</code> (needs LB controller) → <code>loki</code> → <code>opentelemetry-operator</code> → <code>kubecost</code> (needs <code>prometheus</code>) → <code>argocd</code></li>
+          <li>Each release's presync/values choices are broken out below — this file just sequences them</li>
+        </ul>
+      </details>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">crds/kustomization.yaml</span><span class="file-desc">— pulled by the LB controller's presync hook, before anything else installs</span></summary>
+        <ul class="tight file-links">
+          <li>Pulls 3 external manifests: Gateway API v1.2.1 <code>standard-install.yaml</code>, ALB controller v2.14.0 <code>crds.yaml</code> and <code>gateway-crds.yaml</code></li>
+          <li>→ gates every one of: <code>manifests/ui/{gatewayclass,gateway,httproute,loadbalancerconfig,targetgrpconf}.yaml</code>, <code>manifests/grafana/httproute*.yaml</code>, <code>manifests/kubecost/httproute.yaml</code>, <code>manifests/argocd/httproute.yaml</code> — none of these apply until this file's CRDs exist</li>
+        </ul>
+      </details>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">retained-storage.yaml</span><span class="file-desc">— the 5 PVs that make dashboard/log data survive a teardown</span></summary>
+        <ul class="tight file-links">
+          <li>Applied by the <code>prometheus</code> release's presync hook, after <code>envsubst</code>-ing in the <code>*_EBS_VOLUME_ID</code>/<code>*_EBS_AZ</code> env vars — must run before the chart installs, since the chart's PVCs bind to these PVs by label selector</li>
+          <li>→ <code>helm/values/prometheus-stack.yaml</code> (<code>retained-prometheus-tsdb</code>, <code>prometheus-grafana-retained</code>), <code>loki.yaml</code> (<code>retained-loki-data</code>), <code>kubecost.yaml</code> (<code>kubecost-local-store-retained</code>)</li>
+        </ul>
+      </details>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">values/prometheus-stack.yaml</span><span class="file-desc">— the busiest values file in the repo</span></summary>
+        <ul class="tight file-links">
+          <li><code>alertmanagerSpec.alertmanagerConfigSelector.matchLabels.release: prometheus</code> → is the exact reason <code>manifests/alerts/prometheusrule.yaml</code> and <code>alertmanagerconfig-discord.yaml</code> both carry the label <code>release: prometheus</code> — miss that label and Prometheus silently ignores the rule</li>
+          <li><code>grafana.dashboardProviders</code> sidecar (watches ConfigMaps labeled <code>grafana_dashboard: "1"</code>) → <code>manifests/grafana/kustomization.yaml</code>'s <code>configMapGenerator</code></li>
+          <li><code>prometheus.enableRemoteWriteReceiver: true</code> → lets <code>manifests/adot/opentelemetrycollector.yaml</code>'s <code>prometheusremotewrite</code> exporter push metrics in; same Service name is also hardcoded into <code>helm/values/kubecost.yaml</code></li>
+          <li>Serviceaccount IRSA annotation is a <b>hardcoded</b> literal ARN — inconsistent with the <code>.gotmpl</code> + <code>requiredEnv</code> pattern used two files over in the ALB controller/external-dns values (see note below)</li>
+        </ul>
+      </details>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">values/loki.yaml</span><span class="file-desc">— log storage backend</span></summary>
+        <ul class="tight file-links">
+          <li><code>storage.bucketNames.*</code> = <code>retail-store-grp5-loki-chunks</code> — must be kept in sync by hand with <code>terraform/variables.tf</code>'s <code>loki_bucket_name</code></li>
+          <li>→ <code>manifests/fluentbit/fluent-bit.yaml</code>'s three <code>[OUTPUT] Name loki</code> stanzas point at this release's Service (<code>loki.monitoring.svc.cluster.local:3100</code>)</li>
+        </ul>
+      </details>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">values/opentelemetry-operator.yaml</span><span class="file-desc">— the tracing operator</span></summary>
+        <ul class="tight file-links">
+          <li><code>--enable-go-instrumentation=true</code> → is specifically why <code>manifests/catalog/deployment.yaml</code>'s <code>instrumentation.opentelemetry.io/inject-go</code> annotation works at all; catalog is the only Go service and needed this flag added in a dedicated fix</li>
+        </ul>
+      </details>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">values/kubecost.yaml</span><span class="file-desc">— cost visibility, reading Prometheus's own data</span></summary>
+        <ul class="tight file-links">
+          <li><code>kubecostProductConfigs.prometheus.url</code> hardcodes <code>prometheus-kube-prometheus-prometheus.monitoring:9090</code> — the Service name generated by the <code>prometheus</code> release</li>
+          <li>→ <code>manifests/kubecost/httproute.yaml</code> backendRefs <code>kubecost-frontend</code>, the Service this chart's <code>frontend:</code> block generates</li>
+        </ul>
+      </details>
+      <details class="file file-group--helm">
+        <summary><span class="file-path">values/argocd.yaml</span><span class="file-desc">— GitOps controller for the app layer</span></summary>
+        <ul class="tight file-links">
+          <li><code>server.insecure: "true"</code> — exists because <code>manifests/ui/gateway.yaml</code>'s shared ALB listener is plain HTTP only; without this, ArgoCD's default HTTPS redirect breaks behind it</li>
+          <li><code>server.service.type: ClusterIP</code> → required for <code>manifests/argocd/httproute.yaml</code> to backendRef <code>argocd-server</code></li>
+        </ul>
+      </details>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--kustomize)"></span>manifests/</h3>
+      <div class="prose"><p>Root <code>manifests/kustomization.yaml</code> resource order: <code>catalog, carts, checkout, orders, ui, fluentbit, adot, otel-instrumentation, grafana, load-gen, kubecost, alerts, argocd</code>. The last five of those target namespace <code>monitoring</code> — which no manifests/ file creates. It's created by the Helmfile <code>prometheus</code> release's presync hook. Run Kustomize before Helmfile has fully synced and those five fail outright on a missing namespace/CRD.</p></div>
+
+      <p class="filesub">The five store services</p>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">carts/</span><span class="file-desc">— basket contents, backed by an in-cluster DynamoDB-Local fake, not real AWS DynamoDB</span></summary>
+        <ul class="tight file-links">
+          <li><code>configMap.yaml</code>'s dummy AWS creds point at <code>http://carts-dynamodb:8000</code> → <code>deployment-db.yaml</code> / <code>service-db.yaml</code> in the same folder — the name is misleading, this never leaves the cluster</li>
+          <li><code>instrumentation.opentelemetry.io/inject-java: "monitoring/retail-store-instrumentation"</code> → cross-namespace reference to <code>manifests/otel-instrumentation/instrumentation.yaml</code></li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">catalog/</span><span class="file-desc">— product list, MySQL-backed, the only Go service</span></summary>
+        <ul class="tight file-links">
+          <li><code>secrets.yaml</code> (<code>catalog-db</code>) → read by both <code>deployment.yaml</code> (the app) and <code>statefulset-mysql.yaml</code> (the DB) — one Secret, two consumers</li>
+          <li><code>configMap.yaml</code>'s <code>catalog-mysql:3306</code> → <code>service-mysql.yaml</code></li>
+          <li>only file using <code>inject-go</code> — see the OTel operator entry above for why that annotation works</li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">checkout/</span><span class="file-desc">— cart-to-order conversion, Redis-backed</span></summary>
+        <ul class="tight file-links">
+          <li><code>configMap.yaml</code>'s <code>redis://checkout-redis:6379</code> → <code>service-redis.yaml</code></li>
+          <li><code>RETAIL_CHECKOUT_ENDPOINTS_ORDERS: http://orders.orders.svc:80</code> → cross-namespace reference into <code>manifests/orders/service.yaml</code></li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">orders/</span><span class="file-desc">— completed orders, PostgreSQL-backed</span></summary>
+        <ul class="tight file-links">
+          <li><code>secrets.yaml</code> (<code>orders-db</code>) → read by both <code>deployment.yaml</code> and <code>deployment-postgresql.yaml</code> (actually a StatefulSet, despite the filename)</li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">ui/</span><span class="file-desc">— the storefront, and the one Gateway every other route hangs off</span></summary>
+        <ul class="tight file-links">
+          <li><code>configMap.yaml</code> is the file that wires all five services together — <code>RETAIL_UI_ENDPOINTS_{CATALOG,CARTS,ORDERS,CHECKOUT}</code> all point cross-namespace at <code>&lt;svc&gt;.&lt;ns&gt;.svc:80</code></li>
+          <li>Chain: <code>gatewayclass.yaml</code> ← <code>gateway.yaml</code> (references <code>loadbalancerconfig.yaml</code>) ← <code>httproute.yaml</code> (host <code>grp5.sctp-sandbox.com</code>) → <code>service.yaml</code> ← <code>targetgrpconf.yaml</code> (attaches the ALB health check)</li>
+          <li>this Gateway is the shared <code>parentRefs</code> target for <em>every other</em> HTTPRoute in the repo — one ALB serves 5 hostnames off it (app, Grafana, Prometheus, Kubecost, ArgoCD)</li>
+        </ul>
+      </details>
+
+      <p class="filesub">Supporting the platform</p>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">fluentbit/fluent-bit.yaml</span><span class="file-desc">— log shipping DaemonSet</span></summary>
+        <ul class="tight file-links">
+          <li>ServiceAccount annotation is a hardcoded literal ARN (account <code>255945442255</code>) — this is a <b>third, undocumented</b> hardcode, alongside the two ADOT files CLAUDE.md already names</li>
+          <li>its ConfigMap's <code>${AWS_REGION}</code>/<code>${CLUSTER_NAME}</code>/<code>${HOST_NAME}</code> placeholders genuinely <em>are</em> resolved at container runtime by Fluent Bit itself, not by deploy-time <code>envsubst</code> — that part matches CLAUDE.md exactly</li>
+          <li>three <code>loki</code> outputs → the Loki Service from the Helm release; three <code>cloudwatch_logs</code> outputs → depend on the <code>fluent_bit_irsa</code> policy in <code>terraform/iam.tf</code></li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">adot/</span><span class="file-desc">— the OpenTelemetryCollector that receives every service's traces</span></summary>
+        <ul class="tight file-links">
+          <li><code>serviceaccount.yaml</code>'s <code>adot-collector</code> name → bound by <code>clusterrolebinding.yaml</code> and by <code>opentelemetrycollector.yaml</code>'s <code>spec.serviceAccount</code></li>
+          <li>exporters' endpoint/region are explicitly commented <code># Hardcoded because ArgoCD's kustomize build has no envsubst</code> — the two files CLAUDE.md calls out by name</li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">otel-instrumentation/instrumentation.yaml</span><span class="file-desc">— the CR every app's inject-* annotation points at</span></summary>
+        <ul class="tight file-links">
+          <li><code>spec.exporter.endpoint: http://adot-collector.monitoring.svc.cluster.local:4318</code> — <code>adot-collector</code> is the Service the OTel Operator auto-generates from the <code>OpenTelemetryCollector</code> CR named <code>adot</code> (operator convention: <code>&lt;cr-name&gt;-collector</code>)</li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">grafana/kustomization.yaml</span><span class="file-desc">— bundles the dashboard JSON into ConfigMaps</span></summary>
+        <ul class="tight file-links">
+          <li>bundles <b>5</b> dashboard JSON files: <code>demo.json</code>, <code>retail_store_app.json</code>, <code>retail_store_logs.json</code>, <code>log_dashboards.json</code>, <code>retail_store_traces.json</code> — worth reconciling against the "four dashboards" language used in the presentation outline before you're on stage and someone counts</li>
+          <li><code>httproute.yaml</code> → <code>prometheus-grafana</code> Service; <code>httproute-prometheus.yaml</code> → <code>prometheus-kube-prometheus-prometheus</code> Service, the same one ADOT and Kubecost use internally, now also exposed externally</li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">load-gen/cronjob.yaml</span><span class="file-desc">— synthetic shopper traffic, every minute</span></summary>
+        <ul class="tight file-links">
+          <li>hits <code>http://ui.ui.svc.cluster.local</code> directly — bypasses the Gateway/ALB entirely</li>
+          <li>runs on the <code>observability</code> node group, not <code>application</code> — see the FIS side-effect note under <code>eks.tf</code> above</li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">alerts/</span><span class="file-desc">— the two PrometheusRules and the Discord AlertmanagerConfig</span></summary>
+        <ul class="tight file-links">
+          <li><code>prometheusrule.yaml</code>'s <code>RetailStorePodsPending</code> regex hardcodes exactly the 5 app namespaces (<code>catalog|carts|checkout|orders|ui</code>) — a 6th service would need this rule updated by hand</li>
+          <li><code>alertmanagerconfig-discord.yaml</code>'s <code>apiURL</code> reads Secret <code>discord-webhook</code> key <code>url</code> — <b>this Secret has no committed manifest anywhere in the repo</b> (see note below)</li>
+        </ul>
+      </details>
+      <details class="file file-group--kustomize">
+        <summary><span class="file-path">argocd/application.yaml</span><span class="file-desc">— the self-managing bootstrap Application</span></summary>
+        <ul class="tight file-links">
+          <li><code>spec.source.repoURL</code> requires Secret <code>repo-ce12-capstone-sandbox</code> (SSH deploy key) — also <b>no committed manifest</b>, created manually per the README, before this file's first apply</li>
+          <li><code>spec.source.path: manifests</code> → this CR is self-referential: once bootstrapped, ArgoCD manages the very kustomization tree that contains its own definition</li>
+        </ul>
+      </details>
+
+      <div class="note"><b>Two things that are load-bearing but have zero file in this repo:</b> the <code>discord-webhook</code> Secret (Alertmanager → Discord) and the <code>repo-ce12-capstone-sandbox</code> Secret (ArgoCD's read-only git credential). Both are created once, by hand, per the README's setup steps — if either is ever deleted (e.g. after a full <code>terraform destroy</code>, since Secrets live in the cluster, not in state), alerts or ArgoCD sync will silently stop working with no corresponding YAML to check for a fix.</div>
+      <div class="note"><b>Hardcoding inconsistency worth knowing about, not necessarily fixing:</b> <code>helm/values/aws-load-balancer-controller.yaml.gotmpl</code> and <code>external-dns.yaml.gotmpl</code> both use <code>.gotmpl</code> + <code>requiredEnv</code> to inject the AWS account ID at apply time. <code>prometheus-stack.yaml</code> and <code>loki.yaml</code> could have used the same pattern but instead hardcode the literal account ID — and <code>manifests/fluentbit/fluent-bit.yaml</code> does too, despite not being one of the two files CLAUDE.md's ArgoCD section names as intentionally hardcoded. None of this is broken — the account ID doesn't change — but if asked "is this consistent," the honest answer is no, and now you know exactly where.</div>
+    </section>
+
+    <!-- 4 -->
+    <section class="sec" id="services">
+      <span class="eyebrow">The application layer</span>
+      <h2>The five microservices</h2>
+      <p class="dek">None of these five container images were written or are owned by the team — they're pulled pre-built from AWS's public EKS Workshop reference app. The team's entire contribution is the platform running underneath them.</p>
+      <div class="panel scrollx">
+        <table>
+          <thead>
+            <tr><th>Service</th><th>What it does</th><th>Built with</th><th>Backed by</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="tag">ui</td><td>The storefront website — the only service a shopper's browser talks to directly. Calls the other four behind the scenes.</td><td>Java / Spring Boot</td><td>— (no database)</td></tr>
+            <tr><td class="tag">catalog</td><td>The product list — what's for sale, prices, descriptions.</td><td>Go</td><td>MySQL 8.0 (StatefulSet)</td></tr>
+            <tr><td class="tag">carts</td><td>What's currently in a shopper's basket.</td><td>Java / Spring Boot</td><td>DynamoDB Local</td></tr>
+            <tr><td class="tag">checkout</td><td>Turns a cart into an order at the point of purchase.</td><td>Node.js</td><td>Redis 6.0</td></tr>
+            <tr><td class="tag">orders</td><td>Stores completed orders once checkout finishes.</td><td>Java / Spring Boot</td><td>PostgreSQL 16.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="sec" id="traffic">
+      <span class="eyebrow">Networking</span>
+      <h2>How a request gets in</h2>
+      <p class="dek">The path a shopper's browser takes to reach the <code>ui</code> pod, and who's responsible for each hop.</p>
+      <div class="scrollx">
+        <div class="flow">
+          <div class="flow-step">Browser requests <b>grp5.sctp-sandbox.com</b></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Route 53 DNS <span class="chip chip--helm" style="margin-left:6px;">auto-managed</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">AWS Application Load Balancer</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Gateway <span class="chip chip--helm" style="margin-left:6px;">infra-owned</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">HTTPRoute <span class="chip chip--kustomize" style="margin-left:6px;">app-owned</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><code>ui</code> pod</div>
+        </div>
+      </div>
+      <div class="prose">
+        <p>Nobody manually creates the DNS record — <b>external-dns</b> notices the new route in the cluster and writes the Route 53 entry itself. Nobody manually clicks "create load balancer" in the AWS console either — the <b>AWS Load Balancer Controller</b> provisions and manages the ALB from the same Kubernetes resources.</p>
+        <p>Those resources are split deliberately in two: a <b>Gateway</b> (the "front door," owned by whoever runs the infrastructure) and an <b>HTTPRoute</b> (the "which path goes to which service" rule, owned by the application team). This is the newer Kubernetes networking standard — Gateway API — chosen over the older, more familiar <code>Ingress</code> resource specifically because that infra/app split mirrors how the rest of this repo is organised, and because it's the direction Kubernetes networking is actually heading.</p>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="sec" id="observability">
+      <span class="eyebrow">Knowing when something's wrong</span>
+      <h2>Watching the system</h2>
+      <p class="dek">Four separate pillars, all feeding the same Grafana dashboards, all running on the isolated <code>observability</code> node group described above — deliberately, so the system watching for a failure can't be taken down by the same failure it's supposed to catch.</p>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--observe)"></span>Metrics</h3>
+      <div class="prose"><p>A collector scrapes every pod for numbers — CPU, memory, request counts, error rates — every few seconds and feeds them into Prometheus. Grafana then queries Prometheus and draws the dashboards the team actually looks at.</p></div>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--observe)"></span>Logs</h3>
+      <div class="prose"><p>Fluent Bit runs on every server, tails every container's log output as it's written, and ships it off. Loki stores and indexes it, turning it into something searchable from inside Grafana — like a search engine, but for log lines.</p></div>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--observe)"></span>Traces</h3>
+      <div class="prose">
+        <p>The trickiest of the three, because it means following one shopping request as it hops <code>ui → catalog → carts → checkout</code> to see exactly where time got lost. Normally that requires editing each service's source code — not an option here, since the team doesn't own that code.</p>
+        <p>Instead, the OpenTelemetry Operator injects tracing automatically at the moment a pod starts, based on an annotation on that pod — zero source code touched. Java and Node.js services get it via an extra init container; the Go service gets it through a lower-level technique (an eBPF sidecar) since Go doesn't support the same injection method. About 1 in 10 requests gets traced, to keep the volume manageable, and every trace ends up in AWS X-Ray, viewable straight from Grafana.</p>
+      </div>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--alert)"></span>Alerts</h3>
+      <div class="prose">
+        <p>Prometheus continuously checks two rules against reality:</p>
+      </div>
+      <div class="panel scrollx">
+        <table>
+          <thead><tr><th>Alert</th><th>Severity</th><th>Fires when</th></tr></thead>
+          <tbody>
+            <tr><td class="tag" style="color:var(--alert)">NodeNotReady</td><td>critical</td><td>A server hasn't reported itself healthy for more than 15 seconds — usually because it was terminated or crashed.</td></tr>
+            <tr><td class="tag" style="color:var(--alert)">RetailStorePodsPending</td><td>warning</td><td>One or more app pods have been stuck waiting to start for more than 5 seconds — the expected knock-on effect of losing a node.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose"><p>When either fires, Alertmanager pushes a message straight into the team's Discord — a small trick makes this work: Discord happens to accept the exact webhook format Slack uses, so Alertmanager's built-in Slack integration works unmodified, just pointed at a Discord URL.</p></div>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--observe)"></span>Cost</h3>
+      <div class="prose"><p>Kubecost reads the same Prometheus metrics everything else uses and breaks the AWS bill down by Kubernetes namespace — so "how much does <code>checkout</code> cost us this month" gets an actual number, instead of one lump AWS invoice with no way to attribute it.</p></div>
+    </section>
+
+    <!-- 7 -->
+    <section class="sec" id="gitops">
+      <span class="eyebrow">Continuous delivery</span>
+      <h2>How a change ships</h2>
+      <p class="dek">After the very first manual apply, a human never runs a deploy command again — ArgoCD, itself deployed as an app in this repo, takes over watching the repo it lives in.</p>
+      <div class="scrollx">
+        <div class="flow">
+          <div class="flow-step">Someone pushes to <code>main</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">ArgoCD notices <span class="chip chip--kustomize" style="margin-left:6px;">~3 min</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Applies it to the cluster</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Prometheus checks health</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step">Broken? <span class="chip chip--alert" style="margin-left:6px;">Discord</span></div>
+        </div>
+      </div>
+      <div class="prose">
+        <p>ArgoCD's <code>Application</code> resource is configured with two behaviours worth knowing by name, since they explain almost everything about how the cluster stays in sync:</p>
+        <ul class="tight">
+          <li><b>selfHeal</b> — if anyone manually changes something inside the cluster by hand (say, via <code>kubectl edit</code>), ArgoCD notices the drift from what's in Git and quietly reverts it back within a few minutes. Git — not whatever's currently running — is treated as the source of truth.</li>
+          <li><b>prune</b> — if a file is deleted from <code>manifests/</code> in the repo, the matching resource is deleted from the cluster too, automatically.</li>
+        </ul>
+        <p>Because the repo is private, ArgoCD needs a read-only key to clone it — that's set up once, before the very first apply, so ArgoCD can start syncing immediately instead of sitting in an auth-error state.</p>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="sec" id="chaos">
+      <span class="eyebrow">Proving it, not just trusting it</span>
+      <h2>Breaking it on purpose</h2>
+      <p class="dek">Anyone can write an alert rule that looks correct on paper. The only way to know it actually fires under a real failure is to cause one — deliberately, safely, and on a schedule the team controls.</p>
+      <div class="prose">
+        <p>AWS Fault Injection Service (FIS) is aimed — via a narrowly scoped IAM role that can only terminate EC2 instances, nothing else — at exactly one target: 67% of the instances in the <code>application</code> node group. Never the <code>observability</code> node group, on purpose: that's the same isolation decision from the layers section above, and it's what stops this experiment from also killing the very system that's supposed to detect and report on the failure it causes.</p>
+      </div>
+      <div class="panel">
+        <ol class="seq">
+          <li><span class="stepnum">1</span><div>FIS terminates roughly two-thirds of the application node group's real EC2 instances.</div></li>
+          <li><span class="stepnum">2</span><div>Those nodes stop reporting healthy — <code>NodeNotReady</code> starts counting down.</div></li>
+          <li><span class="stepnum">3</span><div>Because it's an EKS <em>managed</em> node group, AWS automatically launches replacement instances without anyone asking.</div></li>
+          <li><span class="stepnum">4</span><div>Kubernetes evicts the pods that were on the dead nodes and reschedules them onto whatever's healthy — which briefly leaves some pods <code>Pending</code>, tripping <code>RetailStorePodsPending</code>.</div></li>
+          <li><span class="stepnum">5</span><div>Both alerts fire, Discord gets two messages, and the Grafana panel turns red with "FIRING!"</div></li>
+          <li><span class="stepnum">6</span><div>Once the replacement nodes join and the pending pods land on them, both alerts clear themselves — no one touches anything.</div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="sec" id="decisions">
+      <span class="eyebrow">The reasoning</span>
+      <h2>Why we chose this</h2>
+      <p class="dek">Every major tool choice is written up as a full Architecture Decision Record in <code>docs/adr/</code>, including the options that were considered and rejected. Condensed to one line each:</p>
+      <div class="panel scrollx">
+        <table>
+          <thead><tr><th>ADR</th><th>Chose</th><th>Over</th><th>Because</th></tr></thead>
+          <tbody>
+            <tr><td class="num">0001</td><td>Amazon EKS</td><td>Plain EC2 + Docker</td><td>Managed control plane, built-in self-healing/scaling, and the industry-standard way to demonstrate SRE practice.</td></tr>
+            <tr><td class="num">0002</td><td>Gateway API</td><td>Classic Ingress</td><td>Where Kubernetes networking is actually heading, and it cleanly splits infra-owned routing from app-owned routing.</td></tr>
+            <tr><td class="num">0003</td><td>Helmfile + Kustomize split</td><td>One tool for everything</td><td>Third-party software needs Helm's install/upgrade machinery; the team's own plain YAML doesn't need a chart at all.</td></tr>
+            <tr><td class="num">0004</td><td>Self-hosted Prometheus/Grafana/Loki/OTel</td><td>CloudWatch, or paid SaaS</td><td>Free beyond storage already being paid for, and the skills transfer to real jobs better than a CloudWatch-only setup.</td></tr>
+            <tr><td class="num">0005</td><td>Separate, tainted observability node group</td><td>One shared node group</td><td>So the chaos demo can kill app servers without also killing the system meant to detect the failure.</td></tr>
+            <tr><td class="num">0006</td><td>S3 remote state with native locking</td><td>Local state, or S3 + DynamoDB</td><td>One shared AWS resource covers both storage and locking for five people applying from their own laptops.</td></tr>
+            <tr><td class="num">0007</td><td>Kubecost</td><td>AWS Cost Explorer alone</td><td>Cost Explorer can't say "catalog cost $X this month" — only per-namespace breakdown can.</td></tr>
+            <tr><td class="num">0008</td><td>AWS FIS</td><td>In-cluster chaos tools, or manual CLI</td><td>Terminates real EC2 instances — an authentic test — without installing yet another in-cluster controller.</td></tr>
+            <tr><td class="num">0009</td><td>ArgoCD</td><td>Manual <code>kubectl apply</code>, or Flux</td><td>Nobody has to remember to deploy, and its UI is far better for showing a live audience what's happening.</td></tr>
+            <tr><td class="num">0010</td><td>OTel auto-instrumentation</td><td>Hand-editing each service's code</td><td>The team doesn't own the application source — auto-injection needs zero code changes.</td></tr>
+            <tr><td class="num">0011</td><td>Discord (via Slack-compatible webhook)</td><td>Email, real Slack, PagerDuty</td><td>The team already lives in Discord, and it happens to accept Slack's webhook format for free.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="sec" id="limits">
+      <span class="eyebrow">Honest about scope</span>
+      <h2>What we deliberately left out</h2>
+      <p class="dek">Good defence in Q&amp;A is naming these before someone else does. None of these are oversights — they're scope decisions for a one-month, five-person learning project, not a production system.</p>
+      <div class="panel">
+        <ul class="tight">
+          <li><b>No HTTPS</b> — every service is plain HTTP; production would use TLS via ACM or cert-manager.</li>
+          <li><b>No CI pipeline</b> — no automated image building, testing, or scanning; the app images are pre-built and deployed as-is.</li>
+          <li><b>No secrets manager</b> — things like the Discord webhook URL sit in plain Kubernetes Secrets, not AWS Secrets Manager or Vault.</li>
+          <li><b>No multi-environment</b> — one cluster, one environment; production would separate dev/staging/prod with promotion gates.</li>
+          <li><b>No auto-scaling</b> — neither pods nor nodes scale automatically with load.</li>
+          <li><b>No RBAC</b> — every team member has cluster-admin access; production would scope permissions per role.</li>
+          <li><b>No network policies</b> — any service can talk to any other service inside the cluster, unrestricted.</li>
+          <li><b>Single region</b> — no cross-region redundancy or disaster recovery.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="sec" id="glossary">
+      <span class="eyebrow">Jargon, defused</span>
+      <h2>Glossary</h2>
+      <p class="dek">The dozen terms most likely to come up in a question you weren't expecting.</p>
+      <div class="panel">
+        <dl class="glossary">
+          <div><dt>ALB</dt><dd>AWS Application Load Balancer — the actual internet-facing thing that receives traffic, provisioned automatically by the load balancer controller.</dd></div>
+          <div><dt>CRD</dt><dd>Custom Resource Definition — teaches Kubernetes a brand-new type of object it didn't understand before. Nothing of that new type can be created until its CRD is installed.</dd></div>
+          <div><dt>GitOps</dt><dd>The practice of treating a Git repo as the single source of truth for what should be running, with a tool (here, ArgoCD) automatically reconciling reality to match it.</dd></div>
+          <div><dt>Helm chart</dt><dd>A pre-packaged, configurable install of a piece of software for Kubernetes — the unit Helmfile installs.</dd></div>
+          <div><dt>IaC</dt><dd>Infrastructure as Code — describing servers and networks as text files instead of manual console clicks, so the setup is repeatable and reviewable.</dd></div>
+          <div><dt>IRSA</dt><dd>IAM Roles for Service Accounts — lets a specific Kubernetes identity borrow scoped AWS permissions temporarily, with no access key or password stored anywhere.</dd></div>
+          <div><dt>Namespace</dt><dd>A named subdivision inside one cluster — each of the five services and each platform tool gets its own, keeping their resources separate.</dd></div>
+          <div><dt>Node group</dt><dd>A set of EC2 servers managed together as one unit inside the cluster. This project has two: <code>application</code> and <code>observability</code>.</dd></div>
+          <div><dt>PV / PVC</dt><dd>PersistentVolume / PersistentVolumeClaim — Kubernetes' way of attaching a real disk (here, an AWS EBS volume) to a pod so its data survives a restart.</dd></div>
+          <div><dt>Sampling</dt><dd>Tracing only a fraction of requests (10% here) instead of every single one, to keep the volume of trace data manageable and affordable.</dd></div>
+          <div><dt>Taint / toleration</dt><dd>A taint blocks anything from being scheduled onto a server unless it carries a matching toleration — used here to reserve the observability node group for monitoring pods only.</dd></div>
+          <div><dt>Webhook</dt><dd>A URL that a service calls automatically when something happens — used two different ways here: Kubernetes calls one to auto-inject tracing into new pods, and Alertmanager calls one to post into Discord.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="sec" id="instructor-qa">
+      <span class="eyebrow">Q&amp;A prep</span>
+      <h2>Questions instructors will probably ask</h2>
+      <p class="dek">Real gaps in this project, stated plainly, with the honest answer — pulled from the actual manifests and ADRs, not guessed. Click a question to reveal the answer and quiz yourself before you have to answer it live.</p>
+
+      <div class="qa-group qa-group--architecture">
+        <h3 class="subhead"><span class="dot" style="background:var(--terraform)"></span>Architecture &amp; trade-offs</h3>
+
+        <details class="qa">
+          <summary>Isn't a full Kubernetes cluster overkill for five small microservices?</summary>
+          <div class="qa-a"><p>Bluntly, yes, for the workload size alone — ADR 0001 names this directly as something the decision rules out: "lowest-cost deployment option for small workloads." The justification isn't workload size, it's the learning objective. The capstone exists to demonstrate SRE and cloud-native practice — self-healing, managed scaling, Helm-based delivery — and EKS is the platform that lets the team show that convincingly.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Why split deployment across Helmfile and Kustomize instead of one tool?</summary>
+          <div class="qa-a"><p>They solve different problems. Helmfile installs third-party software — the load balancer controller, Prometheus, ArgoCD — that ships as versioned Helm charts with CRDs and upgrade lifecycles; Kustomize has no concept of any of that. Kustomize applies the team's own plain YAML for the five services, which never had a Helm chart and didn't need one. Full comparison in ADR 0003.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Why Gateway API instead of the far more common Ingress resource?</summary>
+          <div class="qa-a"><p>Gateway API is where Kubernetes networking is heading, and it splits cleanly into infrastructure-owned config (<code>Gateway</code>) and application-owned config (<code>HTTPRoute</code>) — the same ownership split used everywhere else in this repo. The honest cost, acknowledged in ADR 0002: fewer examples online, and for a single hostname it's more machinery than Ingress would have needed.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Why one NAT gateway instead of one per availability zone?</summary>
+          <div class="qa-a"><p>Cost — <code>single_nat_gateway = true</code> in <code>terraform/vpc.tf</code>. One NAT gateway serves all three AZs' private subnets. It's a real single point of failure for the cluster's <em>outbound</em> internet access (inbound traffic goes through the ALB, unaffected), but running three would triple that specific cost for a project with no production SLA to protect.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Gateway API + external-dns — what are the actual components, and how do they work together?</summary>
+          <div class="qa-a">
+            <p>Five pieces, each owned by a different layer:</p>
+            <ul class="tight">
+              <li><code>GatewayClass</code> (<code>aws-alb</code>) — infra-owned, says "this cluster knows how to build ALBs"</li>
+              <li><code>Gateway</code> (<code>retail-store-gateway</code>) — infra-owned, the shared "front door," one per cluster here</li>
+              <li><code>HTTPRoute</code> — app-owned, one per exposed hostname (ui, Grafana ×2, Kubecost, ArgoCD), all pointing back at that one <code>Gateway</code> via <code>parentRefs</code></li>
+              <li><code>Service</code> — the actual backend each <code>HTTPRoute</code> forwards to</li>
+              <li><code>TargetGroupConfig</code> — optional, attaches an ALB health check to a route</li>
+            </ul>
+            <p>The <b>AWS Load Balancer Controller</b> watches all of the above and provisions the real ALB, listener, and target groups. <b>external-dns</b> separately watches every <code>HTTPRoute</code>'s <code>hostnames:</code> field (its <code>gateway-httproute</code> source, set in <code>helm/values/external-dns.yaml.gotmpl</code>) and auto-creates the matching Route 53 record. Net result: one ALB, one Gateway, five hostnames split purely by <code>HTTPRoute</code> host-matching — and nobody ever touches the Route 53 console.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="qa-group qa-group--reliability">
+        <h3 class="subhead"><span class="dot" style="background:var(--alert)"></span>Reliability &amp; failure modes</h3>
+
+        <details class="qa">
+          <summary>Every deployment shows <code>replicas: 1</code>. Doesn't the app actually go down during the node failure demo?</summary>
+          <div class="qa-a"><p>Yes — worth saying plainly before it's asked. Every one of the five services (<code>ui</code>, <code>catalog</code>, <code>carts</code>, <code>checkout</code>, <code>orders</code>) and every database runs as a single replica. When FIS kills a node, whatever was running on it — app pod or database — is genuinely unavailable for the seconds-to-minutes it takes Kubernetes to reschedule it onto a healthy node. The demo shows self-healing (nothing stays down, no human intervenes), not zero-downtime failover, which would require multiple replicas spread across nodes — this project doesn't run any.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>What happens to the data in carts, checkout, orders, or catalog's databases if their pod restarts?</summary>
+          <div class="qa-a"><p>It's gone. <code>carts-dynamodb</code> and <code>checkout-redis</code> mount no volume at all — DynamoDB Local and Redis are running purely in-memory. <code>catalog</code>'s MySQL and <code>orders</code>' PostgreSQL each mount an <code>emptyDir</code> volume, which is tied to the pod's own lifecycle rather than persisted storage — the moment that pod is deleted or rescheduled to a different node, the volume and everything in it is wiped and the database starts empty again. None of the four databases use a PersistentVolumeClaim. It's a real, easily-defensible gap: production would back every one with an EBS-backed PVC — the way Prometheus, Grafana, Loki, and Kubecost already are via the retained-storage pattern in <code>helm/retained-storage.yaml</code> — or a managed AWS database (RDS, ElastiCache, real DynamoDB instead of dynamodb-local).</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>You don't define any SLIs or SLOs. How do you know if the system is "reliable"?</summary>
+          <div class="qa-a"><p>We don't, formally — there's no error budget or availability target defined anywhere in this project. What exists is the tooling an SLO practice would sit on top of: Prometheus is already collecting the request/error/latency metrics an SLI would be defined from, and Grafana/Alertmanager are already wired to page on threshold breaches. Defining actual SLOs (for example, "99% of requests under 300ms") and an error-budget policy around them is the natural next step, out of scope here.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary><code>NodeNotReady</code> fires after only 15 seconds. Isn't that far too sensitive for a real production alert?</summary>
+          <div class="qa-a"><p>For production, yes — that threshold would produce constant noise from routine node replacements, rolling upgrades, or brief network blips. It's tuned tight on purpose here because it needs to fire visibly within a live demo window. A production-grade version of the same rule would typically use a multi-minute <code>for:</code> duration to filter out exactly that kind of transient noise.</p></div>
+        </details>
+      </div>
+
+      <div class="qa-group qa-group--security">
+        <h3 class="subhead"><span class="dot" style="background:var(--ink)"></span>Security</h3>
+
+        <details class="qa">
+          <summary>Every team member has cluster-admin. What stops someone from accidentally deleting production?</summary>
+          <div class="qa-a"><p>Nothing, currently — a named limitation, not an oversight. <code>access_entries</code> in <code>terraform/eks.tf</code> grants every listed <code>cluster_admins</code> user the full <code>AmazonEKSClusterAdminPolicy</code>. For a five-person team sharing one AWS account with no real production traffic, the coordination cost of role-scoped RBAC wasn't judged worth it within a one-month window. A production version would scope each contributor to namespace-level <code>edit</code>/<code>view</code> roles, with admin reserved for a small platform team.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>The Discord webhook is stored as a plain Kubernetes Secret. Isn't that insecure?</summary>
+          <div class="qa-a"><p>A Kubernetes Secret is base64-encoded, not encrypted — anyone with <code>get secret</code> permission in that namespace (which, per the previous answer, is everyone on the team) can read it in plaintext. It's an accepted risk at this trust level: one team, one AWS account, a webhook URL that at worst lets someone post a fake alert into the team's own Discord. Production would use AWS Secrets Manager or Vault with envelope encryption and tighter access scoping.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>How do you stop a compromised pod in one namespace from reaching another namespace's database?</summary>
+          <div class="qa-a"><p>Currently you can't — there are no NetworkPolicies anywhere in the cluster, so any pod can reach any other pod or service across every namespace by default. Named directly in the README's known limitations. Production would add default-deny NetworkPolicies per namespace, with explicit allow rules only for the traffic paths actually needed (e.g. <code>checkout</code> → <code>checkout-redis</code>, nothing broader).</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Why is everything plain HTTP instead of HTTPS?</summary>
+          <div class="qa-a"><p>The shared ALB Gateway listener was set up without TLS to keep the networking layer simple within the timeframe. It has a real downstream consequence: ArgoCD's <code>server.insecure: "true"</code> setting exists specifically to stop ArgoCD from redirecting to HTTPS and creating an infinite redirect loop behind that plain-HTTP listener. Production would terminate TLS at the ALB using an ACM certificate, or cert-manager for a fully in-cluster PKI.</p></div>
+        </details>
+      </div>
+
+      <div class="qa-group qa-group--cost">
+        <h3 class="subhead"><span class="dot" style="background:var(--helm)"></span>Cost</h3>
+
+        <details class="qa">
+          <summary>What is this actually costing to run?</summary>
+          <div class="qa-a"><p>Check Kubecost live — that's exactly the question it exists to answer, broken down by namespace rather than as a single AWS invoice line. The known fixed cost drivers: the EKS control plane's hourly fee, five to eight running <code>t3.medium</code> EC2 instances across the two node groups, the retained EBS volumes for Prometheus/Loki/Grafana/Alertmanager/Kubecost, one NAT gateway, and one ALB.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Kubecost itself needs infrastructure to run — isn't a cost tool that costs money a bit circular?</summary>
+          <div class="qa-a"><p>It only costs the EBS volume and compute it consumes as one more pod on the observability node group — no license fee, since the project stays within Kubecost's free tier, which is sufficient for a single small cluster. ADR 0007 covers this trade-off directly.</p></div>
+        </details>
+      </div>
+
+      <div class="qa-group qa-group--gitops">
+        <h3 class="subhead"><span class="dot" style="background:var(--kustomize)"></span>GitOps &amp; deployment safety</h3>
+
+        <details class="qa">
+          <summary>ArgoCD auto-syncs with selfHeal and prune on. What stops a bad commit to main from immediately breaking the live app?</summary>
+          <div class="qa-a"><p>Nothing currently does — there's no CI pipeline, no automated test gate, no staging environment, and no manual approval step between a commit landing on <code>main</code> and ArgoCD applying it cluster-wide, typically within about three minutes. Named directly in the limitations: no CI/CD pipeline, no multi-environment. Production GitOps setups solve this with a promotion pipeline — CI validates the change, it lands in staging first, and only a passing, reviewed change gets promoted to the path ArgoCD watches for production.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>How would you roll back a bad deploy, given nobody runs kubectl apply anymore?</summary>
+          <div class="qa-a"><p><code>git revert</code> the offending commit and push to <code>main</code> — ArgoCD picks it up the same way it picks up any other commit, within about three minutes. ArgoCD's UI also keeps a history of previously synced revisions that can be rolled back to directly, as a faster manual fallback.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>ArgoCD's repo-server can't run envsubst — why does that matter?</summary>
+          <div class="qa-a"><p>A handful of manifests (<code>manifests/adot/serviceaccount.yaml</code>, <code>manifests/adot/opentelemetrycollector.yaml</code>) used to rely on <code>${AWS_ACCOUNT_ID}</code>/<code>${EKS_CLUSTER_NAME}</code>/<code>${AWS_REGION}</code> being substituted at apply time. ArgoCD's repo-server runs a plain <code>kustomize build</code> with no substitution step, so those values are hardcoded directly into the manifests instead. Reasonable for a single, fixed cluster and account — it would need revisiting for a genuinely multi-environment setup.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Is ArgoCD set up as "app of apps," or one single Application?</summary>
+          <div class="qa-a"><p>One single <code>Application</code> (<code>manifests/argocd/application.yaml</code>, name <code>retail-store</code>) pointing at the whole <code>manifests/</code> folder — all 13 subdirectories sync as one unit. No parent/child app-of-apps hierarchy anywhere in the repo. That's the right amount of complexity for one cluster and one team; app-of-apps would earn its keep if different services needed independent sync policies, or the project spanned multiple clusters/teams.</p></div>
+        </details>
+      </div>
+
+      <div class="qa-group qa-group--chaos">
+        <h3 class="subhead"><span class="dot" style="background:var(--alert)"></span>Chaos engineering rigor</h3>
+
+        <details class="qa">
+          <summary>Why terminate 67% of the application node group instead of 100%?</summary>
+          <div class="qa-a"><p>That's the configured value (<code>instanceTerminationPercentage: "67"</code> in the FIS experiment template) — it isn't written down anywhere <em>why</em> 67 specifically, so the honest answer is "that's what's configured," not a documented design rationale. A reasonable read: high enough to force a real, visible node-loss and pod-rescheduling event without necessarily terminating every instance in the group at once.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Does this chaos test anything besides "an EC2 instance disappears"?</summary>
+          <div class="qa-a"><p>No — explicit in ADR 0008's trade-offs. FIS was chosen specifically because it terminates real EC2 instances, an authentic trigger for <code>NodeNotReady</code>, at the cost of not testing other failure classes — network latency, packet loss, pod-level faults — that a dedicated in-cluster chaos framework like Chaos Mesh would cover.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Why does the experiment only ever target the application node group, never observability?</summary>
+          <div class="qa-a"><p>On purpose, and it's the same reasoning as the dedicated observability node group itself (ADR 0005): if the chaos experiment could also kill a Prometheus or Alertmanager pod, it would risk taking down the very system that's supposed to detect and report the failure it just caused — undermining the point of the demo entirely.</p></div>
+        </details>
+      </div>
+
+      <div class="qa-group qa-group--observability">
+        <h3 class="subhead"><span class="dot" style="background:var(--observe)"></span>Observability depth</h3>
+
+        <details class="qa">
+          <summary>Only 10% of requests are traced. How would you catch a bug that only shows up 1% of the time?</summary>
+          <div class="qa-a"><p>At a flat 10% sample rate you'd likely still catch it eventually across enough traffic, but any single occurrence has a 90% chance of being missed. The sampling here (<code>parentbased_traceidratio</code> at 0.1, set in <code>manifests/otel-instrumentation/instrumentation.yaml</code>) is a flat head-based rate chosen to keep trace volume and X-Ray cost predictable. Production systems chasing rare intermittent failures more often use tail-based sampling, which decides whether to keep a trace <em>after</em> seeing it — always keeping traces with errors or high latency — rather than before.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Metrics, logs, and traces all live on one dedicated node group. What if that node group itself goes down?</summary>
+          <div class="qa-a"><p>Then the team is flying blind until it recovers — there's no secondary observability path. That's the direct trade-off named in ADR 0005: isolating observability protects it from the application-side chaos experiment, but the stack still has no redundancy of its own — it runs on a small 2–3 node group with no multi-AZ spread, since it's deliberately pinned to a single AZ for EBS volume affinity.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>If someone tears the whole cluster down and rebuilds it, do the Grafana dashboards and historical metrics survive?</summary>
+          <div class="qa-a"><p>Yes, deliberately. The retained EBS volumes (<code>helm/retained-storage.yaml</code>, bound via a Helmfile presync hook using fixed volume IDs) and the S3 buckets for Loki and Terraform state are all designed to outlive a <code>helmfile destroy</code> / <code>terraform destroy</code> cycle. They're only deleted if someone does it manually.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Why Fluent Bit for logs instead of Promtail or Grafana Alloy?</summary>
+          <div class="qa-a"><p>Not written down as a formal decision anywhere — no ADR argues Fluent Bit over Promtail/Alloy specifically, so this one's an inference, not a documented choice. The defensible reason, from what's actually configured in <code>manifests/fluentbit/fluent-bit.yaml</code>: one Fluent Bit agent fans every log line out to <em>two</em> destinations at once — CloudWatch Logs <em>and</em> Loki. Promtail only ships to Loki; getting the CloudWatch half too would mean running a second agent alongside it. Fluent Bit is also AWS's own default recommendation for EKS Container Insights, so the CloudWatch integration came almost for free.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>What are the different sources of logs, and where does each one go?</summary>
+          <div class="qa-a">
+            <p>Three separate streams, each shipped to both CloudWatch Logs and Loki:</p>
+            <ul class="tight">
+              <li><b>Application</b> — stdout/stderr from every pod, i.e. the five store services themselves</li>
+              <li><b>Dataplane</b> — Kubernetes' own node-level components (<code>aws-node</code>, <code>kube-proxy</code>, kubelet)</li>
+              <li><b>Host</b> — raw OS logs from the node itself (<code>dmesg</code>, <code>messages</code>, <code>secure</code>), via the systemd journal</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>OpenTelemetry and Node Exporter both feed Prometheus. What's the actual difference in what they collect?</summary>
+          <div class="qa-a"><p>Different altitudes, zero overlap. <b>Node Exporter</b> (bundled by default with kube-prometheus-stack, never disabled here) reports on the <em>server itself</em> — CPU, memory, disk, network of the underlying EC2 host — with no idea any app is even running on it. <b>ADOT</b> (the OTel collector) does the opposite: it discovers pods via their <code>prometheus.io/scrape</code> annotations and pulls <em>application-level</em> metrics — JVM stats, request counts, per-endpoint latency — the kind of thing only the app itself knows about. Both eventually land in the same Prometheus, but nothing about "is this node healthy" ever comes from ADOT, and nothing about "is checkout throwing errors" ever comes from Node Exporter.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>How are the app metrics actually collected, end to end?</summary>
+          <div class="qa-a"><p>Each deployment exposes a metrics endpoint and says so via annotation — <code>catalog</code>/<code>checkout</code> on <code>/metrics</code>, <code>carts</code>/<code>orders</code>/<code>ui</code> (Spring Boot) on <code>/actuator/prometheus</code>, all port 8080. ADOT's <code>kubernetes-pods</code> job scans every pod in the cluster, reads those annotations to build the real scrape target, pulls the metrics every 60 seconds, and remote-writes the result into Prometheus. Worth knowing precisely: the in-cluster Prometheus never scrapes the app pods itself — ADOT does the scraping, Prometheus just receives what's pushed to it.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>Why use CloudWatch for traces?</summary>
+          <div class="qa-a"><p>Small correction on the premise first: it isn't CloudWatch, it's <b>AWS X-Ray</b> specifically — a separate AWS service (check the <code>awsxray</code> exporter in <code>manifests/adot/opentelemetrycollector.yaml</code>, and the Grafana datasource literally named "AWS X-Ray"). As for why X-Ray over a self-hosted backend like Tempo or Jaeger: ADR 0010 only documents <em>why auto-instrumentation</em> was chosen, not this specific backend choice, so treat this as a reasoned guess rather than a written decision — X-Ray needs no extra self-hosted, EBS-backed storage component the way Tempo would, and the IAM wiring for it (<code>adot_irsa</code>'s trace-write permission, <code>grafana_irsa</code>'s trace-read permission) was already in place for the rest of the stack.</p></div>
+        </details>
+
+        <details class="qa">
+          <summary>How would you actually use traces for root-cause analysis?</summary>
+          <div class="qa-a"><p>A trace follows one request as it hops <code>ui → catalog/carts/orders/checkout</code>, so a slow or failing request's waterfall shows exactly which downstream call ate the time or threw the error — open it in the X-Ray datasource from Grafana and read the span breakdown directly. Two honest limits worth naming before an instructor finds them: only 10% of requests are sampled, so a rare, low-frequency bug can easily be missed entirely; and there's no trace-ID-to-log correlation wired up anywhere — Fluent Bit doesn't inject trace IDs into log lines, so linking a specific trace back to its logs is a manual, timestamp-based lookup, not a one-click jump.</p></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="sec" id="presenting">
+      <span class="eyebrow">For the actual presentation</span>
+      <h2>Presenting this</h2>
+      <p class="dek">Matches the running order in <code>PRESENTATION_OUTLINE.md</code> — who covers what, and which section above backs it up.</p>
+      <div class="panel">
+        <div class="whoblock">
+          <div class="who-name">Arista</div>
+          <div class="who-topics"><ul>
+            <li>Introduction &amp; team, SRE/DevOps project overview</li>
+            <li>Overall architecture overview — see <a href="#minute">The one-minute version</a> and <a href="#layers">The three layers</a></li>
+          </ul></div>
+        </div>
+        <div class="whoblock">
+          <div class="who-name">Sze Kong</div>
+          <div class="who-topics"><ul>
+            <li>Application architecture — see <a href="#services">The five microservices</a></li>
+            <li>API Gateway architecture — see <a href="#traffic">How a request gets in</a></li>
+          </ul></div>
+        </div>
+        <div class="whoblock">
+          <div class="who-name">Indy</div>
+          <div class="who-topics"><ul>
+            <li>Observability architecture: metrics, logs, traces, EBS — see <a href="#observability">Watching the system</a></li>
+            <li>CD pipeline overview — see <a href="#gitops">How a change ships</a></li>
+          </ul></div>
+        </div>
+        <div class="whoblock">
+          <div class="who-name">Gina</div>
+          <div class="who-topics"><ul>
+            <li>Dashboards overview, alerts section walkthrough</li>
+            <li>Node failure demo (AWS FIS) — see <a href="#chaos">Breaking it on purpose</a></li>
+            <li>Discord webhook alerts, DevOps Agent</li>
+          </ul></div>
+        </div>
+        <div class="whoblock">
+          <div class="who-name">Faizal</div>
+          <div class="who-topics"><ul>
+            <li>ArgoCD demo (live replica-count change) — see <a href="#gitops">How a change ships</a></li>
+            <li>Limitations &amp; future improvements — see <a href="#limits">What we left out</a></li>
+            <li>Key takeaways</li>
+          </ul></div>
+        </div>
+        <div class="whoblock">
+          <div class="who-name">All</div>
+          <div class="who-topics"><ul><li>Q&amp;A — see <a href="#instructor-qa">Questions instructors will probably ask</a>, plus <a href="#decisions">Why we chose this</a> and <a href="#limits">What we left out</a></li></ul></div>
+        </div>
+      </div>
+
+      <h3 class="subhead" style="margin-top:32px;"><span class="dot" style="background:var(--ink)"></span>Live URLs</h3>
+      <div class="panel scrollx">
+        <table>
+          <tbody>
+            <tr><td class="tag">Store</td><td><code>http://grp5.sctp-sandbox.com</code></td></tr>
+            <tr><td class="tag">Grafana</td><td><code>http://grp5-grafana.sctp-sandbox.com</code></td></tr>
+            <tr><td class="tag">ArgoCD</td><td><code>http://grp5-argocd.sctp-sandbox.com</code></td></tr>
+            <tr><td class="tag">Kubecost</td><td><code>http://grp5-kubecost.sctp-sandbox.com</code></td></tr>
+            <tr><td class="tag">Prometheus</td><td><code>http://grp5-prometheus.sctp-sandbox.com</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="subhead"><span class="dot" style="background:var(--ink)"></span>Two commands you'll need mid-demo</h3>
+      <div class="panel scrollx">
+<pre style="margin:0; font-family:var(--font-display); font-size:0.85rem; white-space:pre-wrap;"># Grafana admin password
+kubectl get secret -n monitoring prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+
+# ArgoCD admin password (username: admin)
+kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode</pre>
+      </div>
+    </section>
+
+    <footer class="pagefoot">
+      retail-store-grp5 · ap-southeast-1 · built from CLAUDE.md, README.md, docs/adr/, and the manifests themselves
+    </footer>
+  </main>
+</div>
+
+<script>
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+    var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+    if (!('IntersectionObserver' in window)) return;
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var idx = sections.indexOf(entry.target);
+        if (idx === -1) return;
+        if (entry.isIntersecting){
+          links.forEach(function(l){ l.classList.remove('active'); });
+          links[idx].classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s){ if (s) io.observe(s); });
+  })();
+</script>
