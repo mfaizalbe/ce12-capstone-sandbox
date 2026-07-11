@@ -365,7 +365,7 @@ Amazon EKS
 (ii) View dashboard alerts section
 (iii) View DevOps Agent and ask the DevOps Agent:
  
-- What happened in a particular cluster (indicate cluster)?
+- What happened in a particular cluster (indicate cluster e.g., retail-store-grp5, and region e.g., ap-southeast-1)?
 - What caused the incident?
 - What actions were taken?
 
