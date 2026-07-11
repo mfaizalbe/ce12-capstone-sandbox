@@ -413,9 +413,9 @@ Find your symptom, jump straight to the fix:
 | Symptom | Go to |
 |---|---|
 | `kubectl get nodes` shows 0 nodes | [First things to check after a suspected nuke](#first-things-to-check-after-a-suspected-nuke) |
-| `terraform apply` fails with `EntityAlreadyExists` / `AlreadyExistsException` | [terraform apply fails with EntityAlreadyExists](#terraform-apply-fails-with-entityalreadyexists-alreadyexistsexception) |
+| `terraform apply` fails with `EntityAlreadyExists` / `AlreadyExistsException` | [terraform apply fails with EntityAlreadyExists](#terraform-apply-fails-with-entityalreadyexists--alreadyexistsexception) |
 | Pods stuck `Pending`, or `helmfile sync` says "another operation ... is in progress" (first time seeing it) | [helmfile sync fails with pods stuck Pending](#helmfile-sync-fails-with-pods-stuck-pending-or-another-operation-installupgraderollback-is-in-progress) |
-| Same "another operation ... is in progress" message, but nodes are already `Ready` | [A specific Helm release is still stuck](#a-specific-helm-release-is-still-stuck-on-another-operation-is-in-progress-after-nodes-are-up) |
+| Same "another operation ... is in progress" message, but nodes are already `Ready` | [A specific Helm release is still stuck](#a-specific-helm-release-is-still-stuck-on-another-operation--is-in-progress-after-nodes-are-up) |
 | `helmfile sync` fails to mount storage / observability pods can't find their PVC | [EBS volumes were deleted](#ebs-volumes-were-deleted) |
 
 ### First things to check after a suspected nuke
