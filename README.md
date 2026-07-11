@@ -184,11 +184,14 @@ to the cluster.
 ```text
 ce12-capstone-sandbox/
 ├── docs/
-│   ├── adr/                    # Architecture Decision Records — why each tool was chosen
+│   ├── adr/                          # Architecture Decision Records — why each tool was chosen
+│   ├── diagrams/                     # Architecture diagram source files (.drawio)
 │   ├── images/
-│   ├── app_metrics.md          # Per-service metrics reference and example Grafana queries
-│   ├── architecture.drawio     # Architecture diagram source file
-│   └── installation.md        # CRD ownership and Helmfile/Kustomize split details
+│   ├── app_metrics.md                # Per-service metrics reference and example Grafana queries
+│   ├── installation.md               # CRD ownership and Helmfile/Kustomize split details
+│   ├── platform-field-guide.html     # Plain-English platform walkthrough (HTML)
+│   ├── platform-field-guide.pdf      # Same walkthrough, PDF
+│   └── presentation-outline.md       # Demo run-through script for presentations
 ├── helm/
 │   ├── crds/
 │   ├── values/
