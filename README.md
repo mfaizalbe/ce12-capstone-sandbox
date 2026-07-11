@@ -137,6 +137,8 @@ These are things we are aware of but did not implement, either because they were
 
 ## Architecture Overview
 
+![Three layers of construction: Terraform, Helmfile, Kustomize, plus ArgoCD auto-sync and the chaos demo](docs/images/three-layers-overview.png)
+
 This repo deploys a sample retail-store application (five microservices: `carts`, `catalog`, `checkout`,
 `orders`, `ui`) onto Amazon EKS, along with a full observability stack (Prometheus, Grafana, Loki,
 OpenTelemetry, Kubecost) and supporting AWS infra (VPC, IAM roles, load balancer, DNS).
@@ -169,6 +171,7 @@ Install and configure these tools before starting:
 | [kubectl](https://kubernetes.io/docs/tasks/tools/) | Talk to the cluster | v1.36+ |
 | [Helmfile](https://github.com/helmfile/helmfile#installation) | Install Helm charts declaratively | v1.5+ |
 | [Helm](https://helm.sh/docs/intro/install/) | Used internally by Helmfile | any recent v3 |
+| [GitHub CLI (`gh`)](https://cli.github.com/) | Register the ArgoCD repo deploy key | any recent |
 | `envsubst` (part of `gettext`) | Substitute env vars into templated YAML | any |
 | `jq` | Parse JSON output in the DEMO section | any |
 
@@ -258,8 +261,8 @@ aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1
 ```
 
 These volumes are created once and then reused on every future `helmfile sync` — you don't need to
-recreate them unless they're deleted. Their IDs are looked up by tag in the "Helm Chart installation"
-step below, so you don't need to copy/paste volume IDs by hand.
+recreate them unless they're deleted. Their IDs are pinned as fixed values in the "Helm Chart
+installation" step below (see that section for why tag-based lookup isn't used).
 
 ---
 
