@@ -403,92 +403,132 @@ want to fully decommission the environment.
 
 ## Troubleshooting
 
-Recovery steps for this shared, multi-team AWS account. Root cause in most cases: an instructor cleanup
-script (or an interrupted `apply`) changed AWS resources without Terraform's state file finding out.
+This is a shared AWS account used by several teams, and there's an instructor cleanup process that
+periodically deletes resources ("nuking"). Almost every problem below traces back to that: AWS resources
+get deleted (or partially deleted) outside of Terraform, so Terraform's saved record of what exists (its
+"state file") stops matching reality.
+
+Find your symptom, jump straight to the fix:
+
+| Symptom | Go to |
+|---|---|
+| `kubectl get nodes` shows 0 nodes | [First things to check after a suspected nuke](#first-things-to-check-after-a-suspected-nuke) |
+| `terraform apply` fails with `EntityAlreadyExists` / `AlreadyExistsException` | [terraform apply fails with EntityAlreadyExists](#terraform-apply-fails-with-entityalreadyexists-alreadyexistsexception) |
+| Pods stuck `Pending`, or `helmfile sync` says "another operation ... is in progress" (first time seeing it) | [helmfile sync fails with pods stuck Pending](#helmfile-sync-fails-with-pods-stuck-pending-or-another-operation-installupgraderollback-is-in-progress) |
+| Same "another operation ... is in progress" message, but nodes are already `Ready` | [A specific Helm release is still stuck](#a-specific-helm-release-is-still-stuck-on-another-operation-is-in-progress-after-nodes-are-up) |
+| `helmfile sync` fails to mount storage / observability pods can't find their PVC | [EBS volumes were deleted](#ebs-volumes-were-deleted) |
 
 ### First things to check after a suspected nuke
 
+Run these three before trying to fix anything:
+
 ```bash
-kubectl get nodes                       # 0 nodes = EKS node groups are gone
-terraform -chdir=terraform plan         # should show "No changes" if nothing was touched
+kubectl get nodes                       # if this shows 0 nodes, the EKS node groups are gone
+terraform -chdir=terraform plan         # should say "No changes" if nothing was touched
 aws eks list-nodegroups --cluster-name retail-store-grp5 --region ap-southeast-1
 ```
 
-`terraform plan` wanting to add dozens of resources that should already exist, or `kubectl get nodes`
-returning nothing, means **drift**: AWS and Terraform's state file disagree about what exists. Go to the
-matching section below instead of immediately re-running `terraform apply` — a plain re-apply fails loudly
-on resources that already exist in AWS but aren't in state.
+- `kubectl get nodes` shows nothing, or `terraform plan` wants to add a big batch of resources you'd
+  expect to already exist? That's **drift** — Terraform's saved records and the real AWS account have
+  gotten out of sync.
+- **Don't immediately run `terraform apply` to fix it.** A plain re-apply will fail with errors, because
+  it tries to create things that already exist in AWS (just not in Terraform's records). Go to the
+  matching section below instead.
 
 ### `terraform apply` fails with `EntityAlreadyExists` / `AlreadyExistsException`
 
-**What it means:** the resource exists in AWS but Terraform's state doesn't know about it — a previous
-`apply` was interrupted before the state file caught up, or a nuke tool deleted some resources but not
-others.
+**What's happening:** Terraform is trying to create something (an IAM role, a policy, etc.) that's already
+there in AWS — it just doesn't know that, because its state file has no record of it. This usually happens
+when a previous `terraform apply` got interrupted partway through (killed, laptop closed, network dropped)
+before it could save its progress, or when the nuke tool deleted some resources but left others behind.
 
-**Do not delete-and-recreate.** That risks breaking IAM trust relationships or repointing the KMS key that
-encrypts cluster secrets. Reconcile state instead:
+**Do not delete the existing resource and let Terraform recreate it.** That can break IAM permissions, or
+worse, disconnect the encryption key protecting the cluster's secrets. Instead, tell Terraform "this
+already exists, just start tracking it" — that's called an *import*:
 
-1. For each conflicting resource in the error output, note its Terraform address (e.g.
-   `aws_iam_role.fluent_bit_irsa`) and real-world ID/ARN — the error gives you the name; for policies, look
-   up the ARN with `aws iam list-policies --scope Local --query "Policies[?PolicyName=='<name>']"`.
-2. Write an `import` block for each one in a scratch `.tf` file:
+1. Read the error message — it names the resource that already exists (e.g.
+   `retail-store-grp5-fluent-bit-irsa`). For an IAM *role*, that name is usually all you need. For an IAM
+   *policy*, you also need its full ARN (its unique AWS ID), which you can look up with:
+   ```bash
+   aws iam list-policies --scope Local --query "Policies[?PolicyName=='<name>']"
+   ```
+2. For each conflicting resource, add an `import` block to a temporary `.tf` file. This tells Terraform
+   "here's the address in my config, here's the real-world ID, go link them together":
    ```hcl
    import {
      to = aws_iam_role.fluent_bit_irsa
      id = "retail-store-grp5-fluent-bit-irsa"
    }
    ```
-   Use `import` blocks + `terraform plan`/`apply`, not the legacy `terraform import` CLI command — the CLI
-   command can fail with a spurious `Invalid count argument` error on this repo's module structure, even
-   though a plain `plan`/`apply` handles the same resources fine.
-3. `terraform plan` should show `N to import, M to add, K to change, 0 to destroy`. Zero destroys = safe
-   to proceed. Anything under "will be destroyed" → stop and investigate first.
-4. `terraform apply`, then delete the scratch import file (one-shot, not meant to stay in the codebase).
+   Use this `import` block style (Terraform 1.5+), not the older `terraform import` command — the older
+   command hits an unrelated bug on this repo's module setup (`Invalid count argument`) that the newer
+   style avoids.
+3. Run `terraform plan` again. It should now show something like
+   `N to import, M to add, K to change, 0 to destroy`. **The number before "to destroy" must be 0.** If
+   it isn't, stop — something else is wrong, and applying now could delete something you don't want
+   deleted.
+4. If that looks safe, run `terraform apply`. Afterwards, delete the temporary import file — import blocks
+   only need to run once and shouldn't stay in the repo.
 
-KMS alias (`alias/eks/retail-store-grp5`) among the conflicts, with a `target_key_id` that doesn't match
-the key already in state? Check which key the running cluster actually uses before importing:
+One extra check: if the KMS alias (`alias/eks/retail-store-grp5` — the friendly name pointing at the key
+that encrypts cluster secrets) is one of the conflicts, confirm its target key matches what the *running*
+cluster actually uses before importing it, so you don't accidentally repoint it to the wrong key:
 
 ```bash
 aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 \
   --query 'cluster.encryptionConfig[0].provider.keyArn'
 ```
 
-Matches the key already in state → importing and repointing the alias is safe.
+If that key matches the one already in Terraform's state, it's safe to import and repoint the alias.
 
 ### `helmfile sync` fails with pods stuck `Pending`, or `another operation (install/upgrade/rollback) is in progress`
 
-**What it means:** zero nodes, almost always. Check `kubectl get nodes` — empty means the node groups never
-got created (previous section). Every controller/operator pod sits `Pending` forever with nowhere to
-schedule, and any release whose upgrade hook depends on a pod running (like ArgoCD's
-`argocd-redis-secret-init` Job) gets stuck mid-upgrade and locks itself.
+**What's happening:** almost always, there are no nodes (no actual servers) for pods to run on.
+Kubernetes can define a pod, but can't start it without somewhere to put it — so it just sits there
+showing `Pending`. Check `kubectl get nodes`; if that's empty, go fix the node group problem in the
+section above first.
 
-Fix the node group problem, wait for `kubectl get nodes` to show `Ready`, retry `helmfile sync`. Most
-releases succeed on their own once nodes exist.
+Some Helm releases (like ArgoCD) run a one-off setup job before they finish installing. If that job's pod
+can't schedule either, the whole release gets stuck partway through and locks itself — that's where the
+"another operation ... is in progress" message comes from.
+
+**Fix:** get the nodes working first (previous section), wait until `kubectl get nodes` shows every node
+as `Ready`, then run `helmfile sync` again. Most releases finish on their own once there's somewhere for
+their pods to run.
 
 ### A specific Helm release is still stuck on "another operation ... is in progress" after nodes are up
 
-**What it means:** an orphaned lock, not a real in-progress operation. The release's Helm history is stuck
-on a `pending-upgrade`/`pending-install` revision whose Kubernetes resources are long gone — confirm with
-`kubectl get pods,jobs -n <namespace>` (empty = nothing left for it to finish).
+**What's happening:** this looks like Helm still thinks something is mid-install or mid-upgrade, but it's
+really just an old record that never got cleaned up — the actual Kubernetes resources from that attempt
+are long gone. Helm keeps a small record (a Secret) of every install/upgrade it runs; if one of those got
+left in a "still working on it" state, Helm refuses to start a new install for that release until it's
+resolved, even though nothing is actually running anymore.
+
+**First, confirm nothing real is happening** — this matters, because deleting the record while a real
+install genuinely is running would make Helm lose track of it:
+
+```bash
+kubectl get pods,jobs -n <namespace>
+```
+
+Comes back empty? Safe to clean up:
 
 ```bash
 helm history <release> -n <namespace>                                    # find the stuck revision number
-kubectl delete secret sh.helm.release.v1.<release>.v<N> -n <namespace>   # N = the stuck revision
-helmfile -f helm/helmfile.yaml.gotmpl sync --selector name=<release>
+kubectl delete secret sh.helm.release.v1.<release>.v<N> -n <namespace>   # N = the stuck revision; delete its record
+helmfile -f helm/helmfile.yaml.gotmpl sync --selector name=<release>     # try installing that one release again
 ```
-
-Only do this after confirming via `kubectl get pods,jobs` that nothing is actually mid-install — deleting
-the record while a real operation is running loses Helm's track of it.
 
 ### EBS volumes were deleted
 
-**What it means:** the pinned IDs in [`helm/ebs-volumes.env`](helm/ebs-volumes.env) no longer exist —
-caught by the verification command in [Helm Chart Installation](#helm-chart-installation). This account's
-cleanup process isn't scoped to Terraform, so these unmanaged EC2 volumes can be swept even when the rest
-of the environment survives.
+**What's happening:** the volume IDs saved in [`helm/ebs-volumes.env`](helm/ebs-volumes.env) point to
+storage disks that don't exist anymore — caught by the check in
+[Helm Chart Installation](#helm-chart-installation). These disks (EBS volumes) aren't managed by
+Terraform, so the account's cleanup process can delete them even when everything else survives.
 
-No way to recover the old data once a volume is actually deleted — "retained" storage protects against
-`helmfile destroy`/`sync` cycles, not against the volume itself being deleted. Recreate fresh ones:
+**Once a volume is actually deleted, its data is gone for good** — there's no way to get it back.
+"Retained" storage only protects the data from `helmfile destroy`/`sync` cycles, not from the volume
+itself being deleted. All you can do is create fresh, empty ones:
 
 ```bash
 aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-prometheus-retained}]'
@@ -498,7 +538,7 @@ aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1
 aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-kubecost-retained}]'
 ```
 
-Then update every ID in `helm/ebs-volumes.env` to match:
+Then look up the new volume IDs and copy them into `helm/ebs-volumes.env`, replacing the old ones:
 
 ```bash
 aws ec2 describe-volumes --region ap-southeast-1 \
