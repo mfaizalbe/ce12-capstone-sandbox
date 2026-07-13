@@ -14,3 +14,7 @@ admissionWebhooks:
   autoGenerateCert:
     enabled: true
     recreate: true
+
+manager:
+  extraArgs:
+    - --enable-go-instrumentation=true

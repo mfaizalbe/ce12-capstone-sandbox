@@ -64,15 +64,16 @@ Key constraints and requirements include:
   ships with sane defaults and CRDs (`PrometheusRule`, `ServiceMonitor`) for declarative alerting.
 * Loki pairs naturally with Grafana for logs, using the same query/dashboard surface as metrics.
 * OpenTelemetry (via the OpenTelemetry Operator and an `OpenTelemetryCollector` instance in
-  `manifests/adot/`) gives a vendor-neutral collection pipeline that scrapes pods and remote-writes into
-  Prometheus, decoupling instrumentation from the backend.
+  `manifests/adot/`) gives a vendor-neutral collection pipeline with two outputs: metrics are scraped
+  from pods and remote-written to Prometheus; distributed traces are collected via OTLP from
+  auto-instrumented services and exported to AWS X-Ray (see [[0010-otel-auto-instrumentation]]).
 * PromQL, Grafana, and OTel are widely used in industry, maximizing transferable skill-building for the
   team.
 
 **Cons**
 
 * Requires self-managing storage: retained EBS volumes per component (Prometheus, Loki, Grafana,
-  Alertmanager) provisioned ahead of time and bound via presync hooks in Helmfile.
+  Alertmanager, Kubecost) provisioned ahead of time and bound via presync hooks in Helmfile.
 * More moving parts to install and keep in sync (Helm releases, CRDs, presync hooks) than a managed
   alternative.
 * The team owns upgrade and version-compatibility management across kube-prometheus-stack, Loki, and the

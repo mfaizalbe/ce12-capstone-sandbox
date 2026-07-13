@@ -65,7 +65,7 @@ module "eks" {
       instance_types           = ["t3.medium"] # ["m5.large"] -- t3.large blocked by account-level "DenyAllEC2ExceptT2Micro" guardrail (t2.micro/t3.micro/t3.medium only)
       force_update_version     = true
       release_version          = "1.33.0-20250704"
-      use_name_prefix          = true # true so instance_types/AMI changes can do a zero-downtime create-before-destroy swap
+      use_name_prefix          = false # true so instance_types/AMI changes can do a zero-downtime create-before-destroy swap
       iam_role_name            = "${var.cluster_name}-ng-application"
       iam_role_use_name_prefix = true
 

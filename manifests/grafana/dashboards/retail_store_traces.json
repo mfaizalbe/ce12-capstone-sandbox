@@ -47,7 +47,8 @@
           { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
           { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
           { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
-          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "E" }, "properties": [{ "id": "displayName", "value": "catalog" }] }
         ]
       },
       "transformations": [
@@ -57,7 +58,8 @@
         { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
-        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "E", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"catalog\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
       ]
     },
     {
@@ -80,7 +82,8 @@
           { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
           { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
           { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
-          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "E" }, "properties": [{ "id": "displayName", "value": "catalog" }] }
         ]
       },
       "transformations": [
@@ -90,7 +93,8 @@
         { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
-        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "E", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"catalog\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
       ]
     },
     {
@@ -105,7 +109,8 @@
           { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
           { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
           { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
-          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "E" }, "properties": [{ "id": "displayName", "value": "catalog" }] }
         ]
       },
       "transformations": [
@@ -115,7 +120,8 @@
         { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
-        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "E", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"catalog\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
       ]
     },
     {
@@ -130,7 +136,8 @@
           { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "carts" }] },
           { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "checkout" }] },
           { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "orders" }] },
-          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] }
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "ui" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "E" }, "properties": [{ "id": "displayName", "value": "catalog" }] }
         ]
       },
       "transformations": [
@@ -140,7 +147,8 @@
         { "refId": "A", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"carts\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "B", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"checkout\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
         { "refId": "C", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"orders\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
-        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
+        { "refId": "D", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"ui\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] },
+        { "refId": "E", "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" }, "queryType": "getTimeSeriesServiceStatistics", "query": "service(\"catalog\")", "region": "ap-southeast-1", "group": { "GroupARN": "default", "GroupName": "Default" }, "columns": [] }
       ]
     },
     {
@@ -171,7 +179,7 @@
           "refId": "A",
           "datasource": { "type": "grafana-x-ray-datasource", "uid": "$xrayDatasource" },
           "queryType": "getTraceSummaries",
-          "query": "(responsetime > 1 OR error) AND (service(\"carts\") OR service(\"checkout\") OR service(\"orders\") OR service(\"ui\"))",
+          "query": "(responsetime > 1 OR error) AND (service(\"carts\") OR service(\"checkout\") OR service(\"orders\") OR service(\"ui\") OR service(\"catalog\"))",
           "region": "ap-southeast-1",
           "group": { "GroupARN": "default", "GroupName": "Default" }
         }

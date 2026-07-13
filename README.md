@@ -29,6 +29,7 @@ We used the same categories of tools that engineering teams at real companies us
 | Run and manage containerised services | Amazon EKS (Kubernetes) |
 | Deploy changes automatically from Git | ArgoCD |
 | Monitor system health and performance | Prometheus + Grafana |
+| Trace requests across services | AWS X-Ray + OpenTelemetry |
 | Collect and search application logs | Fluent Bit + Loki |
 | Send alerts when something breaks | Alertmanager → Discord |
 | Track cloud spending | Kubecost |
@@ -49,13 +50,8 @@ Prometheus checks that everything is still healthy
 If something breaks → Alertmanager sends a Discord alert
 ```
 
-### What This Project Is Not
-
-- **Not a production system** — there is no HTTPS, no secrets manager, and no hardened security posture
-- **Not a CI/CD pipeline** — there is no automated image building or testing; the app images are pre-built from the [AWS EKS Workshop](https://www.eksworkshop.com/docs/introduction/getting-started/about) reference app and we deploy them as-is
-- **Not multi-environment** — there is one cluster and one environment; a real setup would have separate dev, staging, and production
-- **Not auto-scaling** — pod and node scaling are not configured
-- **Not owned application code** — we do not control what is inside the container images; this project is about the platform, not the application
+This is a platform exercise, not a production system or an app we own the code for — see
+[Known Limitations](#known-limitations) for the full list of what's intentionally out of scope.
 
 ---
 
@@ -67,35 +63,7 @@ If something breaks → Alertmanager sends a Discord alert
 | Grafana (dashboards) | http://grp5-grafana.sctp-sandbox.com |
 | ArgoCD (deployments) | http://grp5-argocd.sctp-sandbox.com |
 | Kubecost (cloud spend) | http://grp5-kubecost.sctp-sandbox.com |
-| Prometheus | http://grp5-prometheus.sctp-sandbox.com |
-
----
-
-## What Happens When Something Breaks
-
-We set up two alerts to fire during the node failure demo. Here is what each one means and what happens when it triggers.
-
-### NodeNotReady (severity: critical)
-
-**What triggers it:** A cluster node (virtual server) has not reported itself as healthy for more than 15 seconds — usually because it was terminated or crashed.
-
-**What you see:**
-- The Grafana dashboard panel turns red with "FIRING!"
-- Alertmanager sends a message to the team Discord channel
-
-**What happens next:** Because we use an EKS managed node group, AWS automatically detects the failed node and launches a replacement. The cluster reschedules the affected pods onto healthy nodes. Within a few minutes everything is green again — no manual action needed.
-
-### RetailStorePodsPending (severity: warning)
-
-**What triggers it:** One or more application pods have been stuck waiting to start for more than 5 seconds. This is the expected knock-on effect of a node failure — Kubernetes evicts pods from the dead node and has to find somewhere else to run them.
-
-**What you see:**
-- The Grafana dashboard panel turns red with "FIRING!"
-- A second Discord message arrives indicating which namespace is affected
-
-**What happens next:** Once the replacement node is ready and joins the cluster, the pending pods are scheduled onto it and start running. This alert typically resolves itself a minute or two after NodeNotReady clears.
-
-Both alerts are defined in [`manifests/alerts/prometheusrule.yaml`](manifests/alerts/prometheusrule.yaml). You can trigger them deliberately using the [node failure demo](#demo-node-failure-simulation) below.
+| Prometheus (metrics) | http://grp5-prometheus.sctp-sandbox.com |
 
 ---
 
@@ -113,25 +81,50 @@ Each major tool choice in this project is documented as an Architecture Decision
 | [0006](docs/adr/0006-terraform-remote-state-s3.md) | S3 remote state with native locking for Terraform |
 | [0007](docs/adr/0007-kubecost-for-cost-visibility.md) | Kubecost for cost visibility |
 | [0008](docs/adr/0008-aws-fis-for-chaos-engineering.md) | AWS FIS for chaos and failure-injection testing |
+| [0009](docs/adr/0009-argocd-gitops.md) | ArgoCD for GitOps continuous delivery of the application layer |
+| [0010](docs/adr/0010-otel-auto-instrumentation.md) | OpenTelemetry Operator injection for distributed tracing |
+| [0011](docs/adr/0011-discord-alertmanager.md) | Discord for Alertmanager notifications |
 
 ---
 
 ## Known Limitations
 
-These are things we are aware of but did not implement, either because they were out of scope for a learning project or because they would require significantly more time and infrastructure.
+This is a **learning project, not a production system** — no HTTPS, no secrets manager, no hardened
+security posture. The rest of this list is what we deliberately left out of scope, either because it
+needed more time/infrastructure than we had, or because it's not the point of the exercise (the platform,
+not the application).
 
 - **No HTTPS** — all services are plain HTTP; a real system would use TLS with ACM or cert-manager
-- **No CI pipeline** — there is no automated image building, unit testing, or vulnerability scanning; we deploy pre-built images from the AWS EKS Workshop
+- **No CI pipeline** — there is no automated image building, unit testing, or vulnerability scanning; we deploy pre-built images from the [AWS EKS Workshop](https://www.eksworkshop.com/docs/introduction/getting-started/about) reference app as-is
+- **Not owned application code** — we do not control what is inside the container images; this project is about the platform, not the application
 - **No secrets manager** — sensitive values like the Discord webhook URL are stored as plain Kubernetes Secrets, not in AWS Secrets Manager or Vault
+- **Known issue — DB passwords committed in git**: `manifests/catalog/secrets.yaml` and
+  `manifests/orders/secrets.yaml` contain the `catalog-db`/`orders-db` passwords as base64-encoded
+  Kubernetes Secret manifests. Base64 is encoding, not encryption — anyone with repo access can decode
+  them (`echo '<value>' | base64 -d`). This was a lower-severity oversight while the repo was private;
+  now that it's public, treat both values as already exposed. Not yet rotated — tracked here as a known
+  issue rather than fixed silently.
 - **No multi-environment** — one cluster, one environment; a real setup would separate dev, staging, and production with promotion gates between them
 - **No auto-scaling** — Horizontal Pod Autoscaler and Cluster Autoscaler are not configured
 - **No RBAC** — all team members have cluster-admin access; a real system would scope permissions by role
 - **No network policies** — services can communicate freely within the cluster with no restrictions
 - **Single region** — no cross-region redundancy or disaster recovery
+- **Not designed to be forked as-is** — S3 bucket names, the EKS cluster name, the pinned EBS volume IDs,
+  and a hardcoded AWS Account ID in a few manifests (see [`docs/installation.md`](docs/installation.md))
+  are all specific to this shared training AWS account. Running this in your own account means creating
+  your own equivalents of each, not reusing the values checked into this repo.
+
+**A note on repo visibility:** this repository has switched between public and private more than once and
+may again. Treat anything ever committed here as permanently public — toggling GitHub's visibility
+setting does not erase git history, existing forks, or caches that already pulled it. Don't rely on "the
+repo is private right now" as a reason to commit a real secret, even temporarily; the DB password issue
+above is exactly what that assumption leads to.
 
 ---
 
 ## Architecture Overview
+
+![Three layers of construction: Terraform, Helmfile, Kustomize, plus ArgoCD auto-sync and the chaos demo](docs/images/three-layers-overview.png)
 
 This repo deploys a sample retail-store application (five microservices: `carts`, `catalog`, `checkout`,
 `orders`, `ui`) onto Amazon EKS, along with a full observability stack (Prometheus, Grafana, Loki,
@@ -165,6 +158,7 @@ Install and configure these tools before starting:
 | [kubectl](https://kubernetes.io/docs/tasks/tools/) | Talk to the cluster | v1.36+ |
 | [Helmfile](https://github.com/helmfile/helmfile#installation) | Install Helm charts declaratively | v1.5+ |
 | [Helm](https://helm.sh/docs/intro/install/) | Used internally by Helmfile | any recent v3 |
+| [GitHub CLI (`gh`)](https://cli.github.com/) | Register the ArgoCD repo deploy key | any recent |
 | `envsubst` (part of `gettext`) | Substitute env vars into templated YAML | any |
 | `jq` | Parse JSON output in the DEMO section | any |
 
@@ -177,14 +171,18 @@ to the cluster.
 ```text
 ce12-capstone-sandbox/
 ├── docs/
-│   ├── adr/                    # Architecture Decision Records — why each tool was chosen
+│   ├── adr/                          # Architecture Decision Records — why each tool was chosen
+│   ├── diagrams/                     # Architecture diagram source files (.drawio)
 │   ├── images/
-│   ├── app_metrics.md          # Per-service metrics reference and example Grafana queries
-│   ├── architecture.drawio     # Architecture diagram source file
-│   └── installation.md        # CRD ownership and Helmfile/Kustomize split details
+│   ├── app_metrics.md                # Per-service metrics reference and example Grafana queries
+│   ├── installation.md               # CRD ownership and Helmfile/Kustomize split details
+│   ├── platform-field-guide.html     # Plain-English platform walkthrough (HTML)
+│   ├── platform-field-guide.pdf      # Same walkthrough, PDF
+│   └── presentation-outline.md       # Demo run-through script for presentations
 ├── helm/
 │   ├── crds/
 │   ├── values/
+│   ├── ebs-volumes.env
 │   ├── helmfile.yaml.gotmpl
 │   └── retained-storage.yaml
 ├── manifests/
@@ -254,8 +252,8 @@ aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1
 ```
 
 These volumes are created once and then reused on every future `helmfile sync` — you don't need to
-recreate them unless they're deleted. Their IDs are looked up by tag in the "Helm Chart installation"
-step below, so you don't need to copy/paste volume IDs by hand.
+recreate them unless they're deleted. Their IDs are pinned as fixed values in the "Helm Chart
+installation" step below (see that section for why tag-based lookup isn't used).
 
 ---
 
@@ -278,30 +276,26 @@ export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output tex
 export VPC_ID=$(aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 --query 'cluster.resourcesVpcConfig.vpcId' --output text)
 ```
 
-Next, set the volume IDs for these EBS volumes. **Use the fixed volume IDs below rather than looking
-them up by `Name` tag.** The `Name` tag is not unique in EC2 — if a volume ever gets recreated (e.g.
-re-running the `create-volume` commands in [Setup](#setup)), the new volume keeps the same `Name` tag as
-the original, so a tag-based lookup (`describe-volumes --filters Name=tag:Name,...`) can silently match
-the wrong (duplicate) volume and pick up empty data instead of the original retained data. Pinning the
-known volume ID avoids that ambiguity entirely:
+Next, check the volume IDs are still valid, then source them (this account has a periodic cleanup
+process that can delete these unmanaged volumes without warning):
 
 ```bash
-export PROMETHEUS_EBS_VOLUME_ID=vol-0482c73ac41267931
-export PROMETHEUS_EBS_AZ=ap-southeast-1c
-export LOKI_EBS_VOLUME_ID=vol-0daaa3ebc58b61715
-export LOKI_EBS_AZ=ap-southeast-1c
-export GRAFANA_EBS_VOLUME_ID=vol-010501faf1ca92ce5
-export GRAFANA_EBS_AZ=ap-southeast-1c
-export ALERTMANAGER_EBS_VOLUME_ID=vol-09b5c8f38ca695887
-export ALERTMANAGER_EBS_AZ=ap-southeast-1c
-export KUBECOST_EBS_VOLUME_ID=vol-07a71d5b6d4e8741b
-export KUBECOST_EBS_AZ=ap-southeast-1c
+aws ec2 describe-volumes --region ap-southeast-1 \
+  --volume-ids $(grep -oE 'vol-[a-z0-9]+' helm/ebs-volumes.env) \
+  --query 'Volumes[].{Id:VolumeId,State:State}' --output table
 ```
 
-If you ever provision a brand-new environment (no pre-existing volumes), create fresh volumes as shown
-in [Setup](#setup) and look up their IDs once with `aws ec2 describe-volumes --filters
-"Name=tag:Name,Values=<name>"`, then replace the fixed IDs above with the new ones — don't re-run that
-lookup on every sync, since a duplicate `Name` tag will reintroduce the same ambiguity.
+- All 5 show a `State` → continue below.
+- Any `InvalidVolume.NotFound` (never created, or swept by the cleanup process) → **stop**, don't run
+  `helmfile sync` yet. Create them via
+  [Troubleshooting → EBS volumes were deleted](#ebs-volumes-were-deleted), then re-run this check.
+
+```bash
+source helm/ebs-volumes.env
+```
+
+(Pinned IDs rather than a `Name`-tag lookup, because the tag isn't unique in EC2 — a recreated volume
+keeps the old tag, so a tag-based lookup can silently grab the wrong duplicate.)
 
 Then sync the Helm releases:
 
@@ -331,12 +325,15 @@ kubectl get pod -n monitoring -l app.kubernetes.io/name=loki -o jsonpath='{.item
 
 ### ArgoCD Repo Credential (set up before the Kustomize apply below)
 
-Since this repo is private, ArgoCD needs read-only git credentials to clone it. Generate a deploy key and
-register it as an ArgoCD repository credential **before** running the Kustomize apply below — that way
-ArgoCD can sync immediately once its bootstrap `Application` is created, instead of sitting in a
-transient "repository not found"/auth error until the credential shows up. This only needs to be done
-once per environment (i.e. again after a fresh `terraform apply`, since the Secret lives inside the
-cluster and doesn't survive a `terraform destroy`):
+This repo's visibility has changed before and may again (see [Known Limitations](#known-limitations)).
+Set up a read-only deploy key for ArgoCD regardless of whether the repo is currently public or private —
+it's harmless when public, required when private, and doing it up front means ArgoCD sync doesn't
+silently break the next time visibility flips. Generate a deploy key and register it as an ArgoCD
+repository credential **before** running the Kustomize apply below — that way ArgoCD can sync immediately
+once its bootstrap `Application` is created, instead of sitting in a transient "repository not
+found"/auth error until the credential shows up. This only needs to be done once per environment (i.e.
+again after a fresh `terraform apply`, since the Secret lives inside the cluster and doesn't survive a
+`terraform destroy`):
 
 ```bash
 ssh-keygen -t ed25519 -C "argocd-ce12-capstone-sandbox-readonly" -f argocd_deploy_key -N ""
@@ -352,11 +349,14 @@ kubectl label secret repo-ce12-capstone-sandbox -n argocd argocd.argoproj.io/sec
 rm argocd_deploy_key argocd_deploy_key.pub  # private key only ever lives in the k8s Secret, never in git
 ```
 
-Create a secret for the Discord webhook URL:
+### Discord Webhook Secret (also set up before the Kustomize apply below)
+
+A separate, unrelated secret — Alertmanager needs this to send the `NodeNotReady`/`RetailStorePodsPending`
+alerts to Discord (see [What Happens When Something Breaks](#what-happens-when-something-breaks)):
 
 ```bash
 kubectl -n monitoring create secret generic discord-webhook \
-  --from-literal=url='https://discord.com/api/webhooks/<id>/<token>/slack' \
+  --from-literal=url='https://discord.com/api/webhooks/<id>/<token>' \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
@@ -378,8 +378,9 @@ kubectl get application -n argocd retail-store   # should show Synced/Healthy
 ```
 
 This command also creates the ArgoCD `Application` (`manifests/argocd/application.yaml`), which then
-takes over: future commits to `manifests/` on `main` are synced automatically (prune + selfHeal), so you
-don't need to re-run this command for app changes going forward. It's still needed for the very first
+takes over: future commits to `manifests/` on `main` are synced automatically — ArgoCD deletes anything
+removed from git (`prune`) and reverts anything changed out-of-band back to match git (`selfHeal`) — so
+you don't need to re-run this command for app changes going forward. It's still needed for the very first
 apply, and works as a manual fallback any time.
 
 ---
@@ -397,6 +398,156 @@ terraform -chdir=terraform destroy
 This does **not** delete the S3 buckets or retained EBS volumes from [Setup](#setup) — they're designed
 to survive a teardown so dashboards/data/state persist across rebuilds. Delete them manually only if you
 want to fully decommission the environment.
+
+---
+
+## Troubleshooting
+
+This is a shared AWS account used by several teams, and there's an instructor cleanup process that
+periodically deletes resources ("nuking"). Almost every problem below traces back to that: AWS resources
+get deleted (or partially deleted) outside of Terraform, so Terraform's saved record of what exists (its
+"state file") stops matching reality.
+
+Find your symptom, jump straight to the fix:
+
+| Symptom | Go to |
+|---|---|
+| `kubectl get nodes` shows 0 nodes | [First things to check after a suspected nuke](#first-things-to-check-after-a-suspected-nuke) |
+| `terraform apply` fails with `EntityAlreadyExists` / `AlreadyExistsException` | [terraform apply fails with EntityAlreadyExists](#terraform-apply-fails-with-entityalreadyexists--alreadyexistsexception) |
+| Pods stuck `Pending`, or `helmfile sync` says "another operation ... is in progress" (first time seeing it) | [helmfile sync fails with pods stuck Pending](#helmfile-sync-fails-with-pods-stuck-pending-or-another-operation-installupgraderollback-is-in-progress) |
+| Same "another operation ... is in progress" message, but nodes are already `Ready` | [A specific Helm release is still stuck](#a-specific-helm-release-is-still-stuck-on-another-operation--is-in-progress-after-nodes-are-up) |
+| `helmfile sync` fails to mount storage / observability pods can't find their PVC | [EBS volumes were deleted](#ebs-volumes-were-deleted) |
+
+### First things to check after a suspected nuke
+
+Run these three before trying to fix anything:
+
+```bash
+kubectl get nodes                       # if this shows 0 nodes, the EKS node groups are gone
+terraform -chdir=terraform plan         # should say "No changes" if nothing was touched
+aws eks list-nodegroups --cluster-name retail-store-grp5 --region ap-southeast-1
+```
+
+- `kubectl get nodes` shows nothing, or `terraform plan` wants to add a big batch of resources you'd
+  expect to already exist? That's **drift** — Terraform's saved records and the real AWS account have
+  gotten out of sync.
+- **Don't immediately run `terraform apply` to fix it.** A plain re-apply will fail with errors, because
+  it tries to create things that already exist in AWS (just not in Terraform's records). Go to the
+  matching section below instead.
+
+### `terraform apply` fails with `EntityAlreadyExists` / `AlreadyExistsException`
+
+**What's happening:** Terraform is trying to create something (an IAM role, a policy, etc.) that's already
+there in AWS — it just doesn't know that, because its state file has no record of it. This usually happens
+when a previous `terraform apply` got interrupted partway through (killed, laptop closed, network dropped)
+before it could save its progress, or when the nuke tool deleted some resources but left others behind.
+
+**Do not delete the existing resource and let Terraform recreate it.** That can break IAM permissions, or
+worse, disconnect the encryption key protecting the cluster's secrets. Instead, tell Terraform "this
+already exists, just start tracking it" — that's called an *import*:
+
+1. Read the error message — it names the resource that already exists (e.g.
+   `retail-store-grp5-fluent-bit-irsa`). For an IAM *role*, that name is usually all you need. For an IAM
+   *policy*, you also need its full ARN (its unique AWS ID), which you can look up with:
+   ```bash
+   aws iam list-policies --scope Local --query "Policies[?PolicyName=='<name>']"
+   ```
+2. For each conflicting resource, add an `import` block to a temporary `.tf` file. This tells Terraform
+   "here's the address in my config, here's the real-world ID, go link them together":
+   ```hcl
+   import {
+     to = aws_iam_role.fluent_bit_irsa
+     id = "retail-store-grp5-fluent-bit-irsa"
+   }
+   ```
+   Use this `import` block style (Terraform 1.5+), not the older `terraform import` command — the older
+   command hits an unrelated bug on this repo's module setup (`Invalid count argument`) that the newer
+   style avoids.
+3. Run `terraform plan` again. It should now show something like
+   `N to import, M to add, K to change, 0 to destroy`. **The number before "to destroy" must be 0.** If
+   it isn't, stop — something else is wrong, and applying now could delete something you don't want
+   deleted.
+4. If that looks safe, run `terraform apply`. Afterwards, delete the temporary import file — import blocks
+   only need to run once and shouldn't stay in the repo.
+
+One extra check: if the KMS alias (`alias/eks/retail-store-grp5` — the friendly name pointing at the key
+that encrypts cluster secrets) is one of the conflicts, confirm its target key matches what the *running*
+cluster actually uses before importing it, so you don't accidentally repoint it to the wrong key:
+
+```bash
+aws eks describe-cluster --name retail-store-grp5 --region ap-southeast-1 \
+  --query 'cluster.encryptionConfig[0].provider.keyArn'
+```
+
+If that key matches the one already in Terraform's state, it's safe to import and repoint the alias.
+
+### `helmfile sync` fails with pods stuck `Pending`, or `another operation (install/upgrade/rollback) is in progress`
+
+**What's happening:** almost always, there are no nodes (no actual servers) for pods to run on.
+Kubernetes can define a pod, but can't start it without somewhere to put it — so it just sits there
+showing `Pending`. Check `kubectl get nodes`; if that's empty, go fix the node group problem in the
+section above first.
+
+Some Helm releases (like ArgoCD) run a one-off setup job before they finish installing. If that job's pod
+can't schedule either, the whole release gets stuck partway through and locks itself — that's where the
+"another operation ... is in progress" message comes from.
+
+**Fix:** get the nodes working first (previous section), wait until `kubectl get nodes` shows every node
+as `Ready`, then run `helmfile sync` again. Most releases finish on their own once there's somewhere for
+their pods to run.
+
+### A specific Helm release is still stuck on "another operation ... is in progress" after nodes are up
+
+**What's happening:** this looks like Helm still thinks something is mid-install or mid-upgrade, but it's
+really just an old record that never got cleaned up — the actual Kubernetes resources from that attempt
+are long gone. Helm keeps a small record (a Secret) of every install/upgrade it runs; if one of those got
+left in a "still working on it" state, Helm refuses to start a new install for that release until it's
+resolved, even though nothing is actually running anymore.
+
+**First, confirm nothing real is happening** — this matters, because deleting the record while a real
+install genuinely is running would make Helm lose track of it:
+
+```bash
+kubectl get pods,jobs -n <namespace>
+```
+
+Comes back empty? Safe to clean up:
+
+```bash
+helm history <release> -n <namespace>                                    # find the stuck revision number
+kubectl delete secret sh.helm.release.v1.<release>.v<N> -n <namespace>   # N = the stuck revision; delete its record
+helmfile -f helm/helmfile.yaml.gotmpl sync --selector name=<release>     # try installing that one release again
+```
+
+### EBS volumes were deleted
+
+**What's happening:** the volume IDs saved in [`helm/ebs-volumes.env`](helm/ebs-volumes.env) point to
+storage disks that don't exist anymore — caught by the check in
+[Helm Chart Installation](#helm-chart-installation). These disks (EBS volumes) aren't managed by
+Terraform, so the account's cleanup process can delete them even when everything else survives.
+
+**Once a volume is actually deleted, its data is gone for good** — there's no way to get it back.
+"Retained" storage only protects the data from `helmfile destroy`/`sync` cycles, not from the volume
+itself being deleted. All you can do is create fresh, empty ones:
+
+```bash
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-prometheus-retained}]'
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-loki-retained}]'
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 10 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-grafana-retained}]'
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 10 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-alertmanager-retained}]'
+aws ec2 create-volume --region ap-southeast-1 --availability-zone ap-southeast-1c --size 20 --volume-type gp3 --tag-specifications 'ResourceType=volume,Tags=[{Key=Name,Value=retail-store-grp5-kubecost-retained}]'
+```
+
+Then look up the new volume IDs and copy them into `helm/ebs-volumes.env`, replacing the old ones:
+
+```bash
+aws ec2 describe-volumes --region ap-southeast-1 \
+  --filters "Name=tag:Name,Values=retail-store-grp5-*-retained" \
+  --query 'Volumes[].{Id:VolumeId,Name:Tags[?Key==`Name`]|[0].Value}' --output table
+```
+
+Commit the updated file, then re-run the verification command from
+[Helm Chart Installation](#helm-chart-installation) to confirm before continuing.
 
 ---
 
@@ -424,6 +575,34 @@ kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 ---
 
+## What Happens When Something Breaks
+
+We set up two alerts to fire during the node failure demo below. Here is what each one means and what happens when it triggers.
+
+### NodeNotReady (severity: critical)
+
+**What triggers it:** A cluster node (virtual server) has not reported itself as healthy for more than 15 seconds — usually because it was terminated or crashed.
+
+**What you see:**
+- The Grafana dashboard panel turns red with "FIRING!"
+- Alertmanager sends a message to the team Discord channel
+
+**What happens next:** Because we use an EKS managed node group, AWS automatically detects the failed node and launches a replacement. The cluster reschedules the affected pods onto healthy nodes. Within a few minutes everything is green again — no manual action needed.
+
+### RetailStorePodsPending (severity: warning)
+
+**What triggers it:** One or more application pods have been stuck waiting to start for more than 5 seconds. This is the expected knock-on effect of a node failure — Kubernetes evicts pods from the dead node and has to find somewhere else to run them.
+
+**What you see:**
+- The Grafana dashboard panel turns red with "FIRING!"
+- A second Discord message arrives indicating which namespace is affected
+
+**What happens next:** Once the replacement node is ready and joins the cluster, the pending pods are scheduled onto it and start running. This alert typically resolves itself a minute or two after NodeNotReady clears.
+
+Both alerts are defined in [`manifests/alerts/prometheusrule.yaml`](manifests/alerts/prometheusrule.yaml). You can trigger them deliberately using the node failure demo right below.
+
+---
+
 ## DEMO: Node Failure Simulation
 
 This uses [AWS Fault Injection Service (FIS)](https://docs.aws.amazon.com/fis/) to terminate 67% of the
@@ -432,30 +611,144 @@ instances in the `application` node group on purpose, so you can watch the clust
 (see [`manifests/alerts/prometheusrule.yaml`](manifests/alerts/prometheusrule.yaml)). The IAM role FIS
 assumes is created by Terraform (`fis_role` in [`terraform/iam.tf`](terraform/iam.tf)).
 
+### Configure Environment Variables
+
 ```bash
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 export AWS_REGION="ap-southeast-1"
 export FIS_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/retail-store-grp5-fis-role"
 export CLUSTER_NAME="retail-store-grp5"
-export NODEGROUP_NAME=$(aws eks list-nodegroups --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --query "nodegroups[?starts_with(@, '${CLUSTER_NAME}-ng-application')]" --output text)
-export NODEGROUP_ARN=$(aws eks describe-nodegroup --region "$AWS_REGION" --cluster-name "$CLUSTER_NAME" --nodegroup-name "$NODEGROUP_NAME" --query 'nodegroup.nodegroupArn' --output text)
+
+export NODEGROUP_NAME=$(aws eks list-nodegroups \
+  --region "$AWS_REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --query "nodegroups[?starts_with(@, '${CLUSTER_NAME}-ng-application')]" \
+  --output text)
+
+export NODEGROUP_ARN=$(aws eks describe-nodegroup \
+  --region "$AWS_REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --nodegroup-name "$NODEGROUP_NAME" \
+  --query "nodegroup.nodegroupArn" \
+  --output text)
 ```
 
-Check if an experiment template already exists (skip creation if one is listed):
+### Recreate the Experiment Template
+
+**Always recreate the experiment template before running this demo.** AWS FIS experiment templates store the EKS managed node group ARN. Whenever the cluster is recreated (e.g. after a Terraform destroy/apply), the ARN changes and reusing an old template will fail with `InvalidTarget: The following targeted node groups do not exist.`
+
+List and delete any existing NodeDeletion templates:
 
 ```bash
-aws fis list-experiment-templates --region "$AWS_REGION" --output table
+aws fis list-experiment-templates \
+  --region "$AWS_REGION" \
+  --output table
 ```
-
-Create the experiment template only if one does not already exist (this only defines the experiment, it does not run anything yet):
 
 ```bash
-export NODE_EXP_ID=$(aws fis create-experiment-template --region "$AWS_REGION" --cli-input-json '{"description":"NodeDeletion","targets":{"target-nodegroup":{"resourceType":"aws:eks:nodegroup","resourceArns":["'$NODEGROUP_ARN'"],"selectionMode":"ALL"}},"actions":{"nodedeletion":{"actionId":"aws:eks:terminate-nodegroup-instances","parameters":{"instanceTerminationPercentage":"67"},"targets":{"Nodegroups":"target-nodegroup"}}},"stopConditions":[{"source":"none"}],"roleArn":"'$FIS_ROLE_ARN'","tags":{"ExperimentSuffix":"DEMO"}}' --output json | jq -r '.experimentTemplate.id')
+aws fis delete-experiment-template \
+  --id <EXPERIMENT_TEMPLATE_ID> \
+  --region "$AWS_REGION"
 ```
 
-Run it (this actually terminates instances — only do this on a cluster you're OK disrupting):
+Repeat for each NodeDeletion template returned. Then create a new one:
 
 ```bash
-export NODE_EXP_ID=EXTEKNnXLxNWUDCmE # when repeating the experiment only
-aws fis start-experiment --region "$AWS_REGION" --experiment-template-id "$NODE_EXP_ID" --output json
+export NODE_EXP_ID=$(aws fis create-experiment-template \
+  --region "$AWS_REGION" \
+  --cli-input-json '{
+    "description":"NodeDeletion",
+    "targets":{
+      "target-nodegroup":{
+        "resourceType":"aws:eks:nodegroup",
+        "resourceArns":["'"$NODEGROUP_ARN"'"],
+        "selectionMode":"ALL"
+      }
+    },
+    "actions":{
+      "nodedeletion":{
+        "actionId":"aws:eks:terminate-nodegroup-instances",
+        "parameters":{
+          "instanceTerminationPercentage":"67"
+        },
+        "targets":{
+          "Nodegroups":"target-nodegroup"
+        }
+      }
+    },
+    "stopConditions":[
+      {
+        "source":"none"
+      }
+    ],
+    "roleArn":"'"$FIS_ROLE_ARN"'",
+    "tags":{
+      "ExperimentSuffix":"DEMO"
+    }
+  }' \
+  --output json | jq -r '.experimentTemplate.id')
 ```
+
+Verify that the template was created successfully:
+
+```bash
+echo "$NODE_EXP_ID"
+```
+
+### Run the Experiment
+
+```bash
+aws fis start-experiment \
+  --region "$AWS_REGION" \
+  --experiment-template-id "$NODE_EXP_ID"
+```
+
+### Cleanup
+
+Delete the template immediately after starting the experiment — `$NODE_EXP_ID` is still set in this terminal and deleting the template does not affect the running experiment:
+
+```bash
+aws fis delete-experiment-template \
+  --id "$NODE_EXP_ID" \
+  --region "$AWS_REGION"
+```
+
+### Monitor the Cluster
+
+Open separate terminals and monitor the cluster while the experiment is running.
+
+Watch Grafana: [Node Failure Demo dashboard](http://grp5-grafana.sctp-sandbox.com/d/retail-store-node-failure-demo/)
+
+Watch node status:
+
+```bash
+watch kubectl get nodes
+```
+
+Watch all pods:
+
+```bash
+watch kubectl get pods -A
+```
+
+### Expected Behaviour
+
+During the experiment you should observe the following sequence:
+
+1. AWS FIS terminates approximately 67% of the application node group instances.
+2. One or more application nodes transition to NotReady.
+3. Amazon EKS automatically launches replacement EC2 instances and new worker nodes join the cluster.
+4. Kubernetes reschedules affected application pods onto the replacement nodes.
+5. Prometheus alerts `NodeNotReady` and `RetailStorePodsPending` fire during the disruption.
+6. Once replacement nodes become Ready and workloads recover, the alerts automatically clear.
+
+This demonstrates the cluster's self-healing capability under node failure conditions.
+
+
+### Presentation Slides
+
+Slides: [Deploying and Operating a Retail Platform on AWS EKS: An SRE & DevOps Journey](https://docs.google.com/presentation/d/1Q8uqIPG0ueoZPHuFo-w3-zNtl81ow3b1cww-qnVF-18)
+
+---
+
+![CE12 Group 5, last lesson](docs/images/ce12-last-lesson.png)

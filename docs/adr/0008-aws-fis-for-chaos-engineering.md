@@ -63,9 +63,9 @@ Key constraints and requirements include:
 
 **Pros**
 
-* Native AWS service for fault injection against real AWS resources (EC2 instances), so terminating a
-  node via FIS is an authentic test of the actual failure mode (`NodeNotReady`) rather than a simulated
-  one.
+* Native AWS service for fault injection against real AWS resources (EC2 instances), so terminating
+  nodes via FIS (67% of the application node group) is an authentic test of the actual failure mode
+  (`NodeNotReady`) rather than a simulated one.
 * Experiment templates and the dedicated IAM role (`${cluster_name}-fis-role`, scoped to node-termination
   actions via `terraform/iam.tf`) make the blast radius explicit and auditable as Terraform-managed code.
 * No additional in-cluster controller or CRDs required — keeps the cluster's CRD-ownership model
@@ -86,8 +86,9 @@ Key constraints and requirements include:
 The team chose AWS FIS, with a dedicated IAM role scoped to node-termination permissions
 (`terraform/iam.tf`), to run the node-failure chaos demo against the `application` node group.
 
-This decision was made because FIS terminates a real EC2 instance, providing an authentic trigger for the
-`NodeNotReady` and `RetailStorePodsPending` alerts rather than a simulated kubelet-level fault, and because
+This decision was made because FIS terminates real EC2 instances (67% of the application node group),
+providing an authentic trigger for the `NodeNotReady` and `RetailStorePodsPending` alerts rather than a
+simulated kubelet-level fault, and because
 it avoids installing another in-cluster controller purely for a single demo scenario. Scoping the
 experiment's IAM role to node-termination actions, and targeting only the `application` node group, keeps
 the blast radius explicit and prevents the demo from disrupting the observability stack needed to verify

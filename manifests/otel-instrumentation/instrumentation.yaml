@@ -28,3 +28,7 @@ spec:
       limits:
         cpu: 100m
         memory: 128Mi
+  go:
+    env:
+      - name: OTEL_GO_AUTO_TARGET_EXE
+        value: /app/main
